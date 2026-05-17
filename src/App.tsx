@@ -1,15 +1,19 @@
-import { useState } from "react";
+// import { useState } from "react";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
-  }
-
-  return <DashboardPage />;
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // if (!isAuthenticated) {
+  //   return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
+  // }
+  // return <DashboardPage />;
+  return (
+    <>
+      <LoginPage />
+      <DashboardPage />
+    </>
+  );
 }
 
 export default App;

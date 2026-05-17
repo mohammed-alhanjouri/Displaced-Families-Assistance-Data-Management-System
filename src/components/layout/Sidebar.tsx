@@ -1,7 +1,10 @@
 // Sidebar component for navigation links
 
 interface SidebarProps {
-  links: { name: string; href: string }[];
+  links: {
+    name: string;
+    href: string;
+  }[];
 }
 
 const Sidebar = ({ links }: SidebarProps) => {
