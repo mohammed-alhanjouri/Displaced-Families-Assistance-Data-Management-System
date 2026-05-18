@@ -4,6 +4,7 @@ import Button from "../components/ui/Button.tsx";
 import Card from "../components/ui/Card.tsx";
 import Checkbox from "../components/ui/Checkbox.tsx";
 import Input from "../components/ui/Input.tsx";
+import { useNavigate } from "react-router-dom";
 
 // interface LoginPageProps {
 //   onLogin: () => void;
@@ -16,8 +17,11 @@ const LoginPage = () => {
 
   const locations = ["Location 1", "Location 2", "Location 3"];
 
+  const navigate = useNavigate();
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    navigate("/dashboard");
     // onLogin();
   };
 
