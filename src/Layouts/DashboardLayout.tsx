@@ -15,7 +15,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           { name: "Dashboard", href: "/dashboard" },
           { name: "Global Search", href: "/global-search" },
           { name: "Reports", href: "/reports" },
-          { name: "Settings", href: "/settings" },
           { name: "Logout", href: "/logout" },
         ]}
       />
