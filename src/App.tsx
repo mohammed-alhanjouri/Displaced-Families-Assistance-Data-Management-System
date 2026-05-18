@@ -1,6 +1,7 @@
 // import { useState } from "react";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
+import AppRoutes from "./routes/AppRoutes";
 
 function App() {
   // const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -9,10 +10,11 @@ function App() {
   // }
   // return <DashboardPage />;
   return (
-    <>
-      <LoginPage />
-      <DashboardPage />
-    </>
+    // <>
+    //   <LoginPage />
+    //   <DashboardPage />
+    // </>
+    <AppRoutes />
   );
 }
 
