@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { familiesData } from "../data/families";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useState, type ChangeEvent, type FormEvent } from "react";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 
 const GlobalSearchPage = () => {
   const locations = [
@@ -82,8 +83,12 @@ const GlobalSearchPage = () => {
   return (
     <DashboardLayout>
       <div>
-        <p className="text-sm text-gray-500">Dashboard {">"} Global Search</p>
-
+        <Breadcrumbs
+          items={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Global Search" },
+          ]}
+        />
         <h1 className="text-2xl font-bold text-gray-800 mt-3">Global Search</h1>
       </div>
 
