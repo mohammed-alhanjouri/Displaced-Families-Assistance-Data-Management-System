@@ -7,7 +7,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       <HeaderNav
         user={{
           name: "Moha",
-          role: "System Administrator",
+          role: "Organization Manager",
         }}
       />
       <Sidebar

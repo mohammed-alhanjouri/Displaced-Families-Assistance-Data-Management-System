@@ -9,8 +9,8 @@ interface HeaderNavProps {
 
 const HeaderNav = ({ user }: HeaderNavProps) => {
   return (
-    <header className="sticky top-0 z-10 w-full border-b border-gray-300 bg-white shadow-sm">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
+    <header className="sticky top-0 z-10 w-full border-b border-gray-300 bg-white rounded-lg shadow-sm py-3">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-2 md:flex-row md:items-center md:justify-between">
         <div className="text-lg font-bold text-gray-800 md:text-xl">
           Displaced Families Assistance and Data Management System
         </div>
