@@ -1,9 +1,9 @@
 const StatsCards = () => {
   const stats = [
-    { title: "Total Families", value: "125" },
-    { title: "Total Persons", value: "300" },
-    { title: "High-Vulnerability Families", value: "25" },
-    { title: "Total Assistance Provided", value: "57" },
+    { title: "Total Families", value: 125 },
+    { title: "Total Persons", value: 300 },
+    { title: "High-Vulnerability Families", value: 25 },
+    { title: "Total Assistance Provided", value: 57 },
   ];
 
   return (
