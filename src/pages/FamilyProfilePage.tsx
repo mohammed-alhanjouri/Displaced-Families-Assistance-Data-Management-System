@@ -1,6 +1,7 @@
 import DashboardLayout from "../layouts/DashboardLayout";
 import { familiesData } from "../data/families";
 import { Link, useParams } from "react-router-dom";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 
 const FamilyProfilePage = () => {
   const { nationalID } = useParams();
@@ -26,9 +27,12 @@ const FamilyProfilePage = () => {
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="text-sm text-gray-500">
-            Global Search {">"} Family Profile
-          </p>
+          <Breadcrumbs
+            items={[
+              { label: "Global Search", href: "/global-search" },
+              { label: "Family Profile" },
+            ]}
+          />
 
           <h1 className="text-2xl font-bold text-gray-800 mt-3">
             Family Profile
