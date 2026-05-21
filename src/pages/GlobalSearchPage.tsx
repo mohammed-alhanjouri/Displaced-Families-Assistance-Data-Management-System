@@ -81,13 +81,10 @@ const GlobalSearchPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h1 className="text-2xl font-semibold text-gray-700 mb-4">
-          Global Search
-        </h1>
-        <p className="text-gray-500">
-          [Global Search Functionality Placeholder]
-        </p>
+      <div>
+        <p className="text-sm text-gray-500">Dashboard {">"} Global Search</p>
+
+        <h1 className="text-2xl font-bold text-gray-800 mt-3">Global Search</h1>
       </div>
 
       <form onSubmit={handleSubmit}>
