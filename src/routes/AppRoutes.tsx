@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import DashboardPage from "../pages/DashboardPage";
 import LoginPage from "../pages/LoginPage";
 import GlobalSearchPage from "../pages/GlobalSearchPage";
+import FamilyProfilePage from "../pages/FamilyProfilePage";
 import ReportsPage from "../pages/ReportsPage";
 
 const AppRoutes = () => {
@@ -10,6 +11,7 @@ const AppRoutes = () => {
       <Route path="/" element={<LoginPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/global-search" element={<GlobalSearchPage />} />
+      <Route path="/families/:nationalID" element={<FamilyProfilePage />} />
       <Route path="/reports" element={<ReportsPage />} />
       <Route path="/logout" element={<div>Logout - Coming Soon</div>} />
     </Routes>
