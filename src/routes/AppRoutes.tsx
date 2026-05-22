@@ -4,6 +4,7 @@ import LoginPage from "../pages/LoginPage";
 import GlobalSearchPage from "../pages/GlobalSearchPage";
 import FamilyProfilePage from "../pages/FamilyProfilePage";
 import ReportsPage from "../pages/ReportsPage";
+import RegisterFamilyPage from "../pages/RegisterFamilyPage";
 
 const AppRoutes = () => {
   return (
@@ -14,6 +15,7 @@ const AppRoutes = () => {
       <Route path="/families/:nationalID" element={<FamilyProfilePage />} />
       <Route path="/reports" element={<ReportsPage />} />
       <Route path="/logout" element={<div>Logout - Coming Soon</div>} />
+      <Route path="/register-family" element={<RegisterFamilyPage />} />
     </Routes>
   );
 };
