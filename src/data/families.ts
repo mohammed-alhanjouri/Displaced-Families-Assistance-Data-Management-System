@@ -14,6 +14,8 @@ export type Family = {
   originalResidence: string;
   location: string;
   totalMembers: number;
+  isFemaleHeaded: boolean;
+  femaleHeadReason?: string;
   vulnerabilityScore: number;
   vulnerabilityLevel: 'Low' | 'Medium' | 'High' | string;
   lastAssistanceDate: string; // ISO date
@@ -28,6 +30,7 @@ export const familiesData: Family[] = [
     originalResidence: "Gaza City",
     location: "Location 1",
     totalMembers: 4,
+    isFemaleHeaded: false,
     vulnerabilityScore: 8,
     vulnerabilityLevel: "High",
     lastAssistanceDate: "2024-05-15",
@@ -40,6 +43,14 @@ export const familiesData: Family[] = [
         notes: "Monthly support",
         recordedBy: "Admin",
       },
+      {
+        id: 2,
+        date: "2026-05-01",
+        assistanceType: "Cash Assistance",
+        providerOrganization: "Red Cross",
+        notes: "Emergency support",
+        recordedBy: "Admin",
+      },
     ],
   },
   {
@@ -49,6 +60,8 @@ export const familiesData: Family[] = [
     originalResidence: "Gaza City",
     location: "Location 2",
     totalMembers: 3,
+    isFemaleHeaded: true,
+    femaleHeadReason: "Widow",
     vulnerabilityScore: 6,
     vulnerabilityLevel: "Medium",
     lastAssistanceDate: "2024-06-01",
@@ -61,6 +74,7 @@ export const familiesData: Family[] = [
     originalResidence: "Beit Lahia City",
     location: "Location 3",
     totalMembers: 5,
+    isFemaleHeaded: false,
     vulnerabilityScore: 4,
     vulnerabilityLevel: "Low",
     lastAssistanceDate: "2024-05-20",
@@ -73,6 +87,8 @@ export const familiesData: Family[] = [
     originalResidence: "Gaza City",
     location: "Location 1",
     totalMembers: 2,
+    isFemaleHeaded: true,
+    femaleHeadReason: "Widow",
     vulnerabilityScore: 8,
     vulnerabilityLevel: "High",
     lastAssistanceDate: "2024-05-15",
@@ -85,6 +101,7 @@ export const familiesData: Family[] = [
     originalResidence: "Gaza City",
     location: "Location 4",
     totalMembers: 6,
+    isFemaleHeaded: false,
     vulnerabilityScore: 6,
     vulnerabilityLevel: "Medium",
     lastAssistanceDate: "2024-05-15",
@@ -97,6 +114,7 @@ export const familiesData: Family[] = [
     originalResidence: "North City",
     location: "Location 5",
     totalMembers: 4,
+    isFemaleHeaded: false,
     vulnerabilityScore: 4,
     vulnerabilityLevel: "Low",
     lastAssistanceDate: "2024-05-20",
@@ -109,6 +127,8 @@ export const familiesData: Family[] = [
     originalResidence: "Gaza City",
     location: "Location 6",
     totalMembers: 3,
+    isFemaleHeaded: true,
+    femaleHeadReason: "Widow",
     vulnerabilityScore: 8,
     vulnerabilityLevel: "High",
     lastAssistanceDate: "2024-05-15",
@@ -121,6 +141,7 @@ export const familiesData: Family[] = [
     originalResidence: "North Gaza",
     location: "Location 7",
     totalMembers: 5,
+    isFemaleHeaded: false,
     vulnerabilityScore: 6,
     vulnerabilityLevel: "Medium",
     lastAssistanceDate: "2024-05-20",
@@ -133,6 +154,8 @@ export const familiesData: Family[] = [
     originalResidence: "Khan Younis",
     location: "Location 8",
     totalMembers: 2,
+    isFemaleHeaded: true,
+    femaleHeadReason: "Divorced",
     vulnerabilityScore: 8,
     vulnerabilityLevel: "High",
     lastAssistanceDate: "2024-05-15",
@@ -145,6 +168,7 @@ export const familiesData: Family[] = [
     originalResidence: "Rafah",
     location: "Location 9",
     totalMembers: 4,
+    isFemaleHeaded: false,
     vulnerabilityScore: 4,
     vulnerabilityLevel: "Low",
     lastAssistanceDate: "2024-05-20",
