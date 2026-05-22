@@ -1,5 +1,6 @@
 import FamilyIdentificationCard from "../features/register-family/FamilyIdentificationCard";
-import HouseholdInformationCard from "../features/register-family/HousenoldInformationCard";
+import HouseholdInformationCard from "../features/register-family/HouseholdInformationCard";
+import LocationInformationCard from "../features/register-family/LocationInformationCard";
 import RegisterFamilyLayout from "../layouts/RegisterFamilyLayout";
 
 const RegisterFamilyPage = () => {
@@ -10,6 +11,7 @@ const RegisterFamilyPage = () => {
       </h1>
       <FamilyIdentificationCard />
       <HouseholdInformationCard />
+      <LocationInformationCard />
     </RegisterFamilyLayout>
   );
 };
