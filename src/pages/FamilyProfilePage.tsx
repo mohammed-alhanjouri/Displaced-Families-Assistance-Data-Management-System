@@ -48,37 +48,79 @@ const FamilyProfilePage = () => {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="space-y-3 bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Family Information</h2>
-          <p>National ID: {family.nationalID}</p>
-          <p>Head of Family: {family.familyHeadName}</p>
-          <p>Phone Number: {family.phoneNumber}</p>
-          <p>Total Members: {family.totalMembers}</p>
-          <p>Female-Headed Household: No</p>
-          <p>Female Head Reason: N/A</p>
+          <p>
+            <span className="font-semibold text-gray-800">National ID:</span>{" "}
+            {family.nationalID}
+          </p>
+          <p>
+            <span className="font-semibold text-gray-800">
+              Family Head Name:
+            </span>{" "}
+            {family.familyHeadName}
+          </p>
+          <p>
+            <span className="font-semibold text-gray-800">Phone Number:</span>{" "}
+            {family.phoneNumber}
+          </p>
+          <p>
+            <span className="font-semibold text-gray-800">Total Members:</span>{" "}
+            {family.totalMembers}
+          </p>
+          <p>
+            <span className="font-semibold text-gray-800">
+              Female-Headed Household:
+            </span>{" "}
+            {family.isFemaleHeaded ? "Yes" : "No"}
+          </p>
+          <p>
+            <span className="font-semibold text-gray-800">
+              Female Head Reason:
+            </span>{" "}
+            {family.femaleHeadReason || "N/A"}
+          </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">
             Location and Vulnerability
           </h2>
-          <ul className="list-disc list-inside">
-            <li>Current Camp / Location: {family.location}</li>
-            <li>Original Residence: {family.originalResidence}</li>
-            <li>Vulnerability Score: {family.vulnerabilityScore}</li>
-            <li>
-              Vulnerability Level:
+
+          <div className="space-y-3">
+            <p>
+              <span className="font-semibold text-gray-800">
+                Current Camp / Location:
+              </span>{" "}
+              {family.location}
+            </p>
+            <p>
+              <span className="font-semibold text-gray-800">
+                Original Residence:
+              </span>{" "}
+              {family.originalResidence}
+            </p>
+            <p>
+              <span className="font-semibold text-gray-800">
+                Vulnerability Score:
+              </span>{" "}
+              {family.vulnerabilityScore}
+            </p>
+            <p>
+              <span className="font-semibold text-gray-800">
+                Vulnerability Level:
+              </span>{" "}
               <span
-                className={`rounded-lg px-3 py-1 text-sm font-medium ${
+                className={`ml-2 rounded-lg px-3 py-1 text-sm font-medium ${
                   vulnerabilityClasses[family.vulnerabilityLevel]
                 }`}
               >
                 {family.vulnerabilityLevel}
               </span>
-            </li>
-          </ul>
+            </p>
+          </div>
         </div>
       </div>
-      <div className="overflow-x-auto bg-white p-6 rounded-lg shadow mt-6">
+      <div className=" bg-white p-6 rounded-lg shadow mt-6">
         <h2 className="text-xl font-semibold mb-4">Assistance History</h2>
 
         {family.assistanceHistory.length === 0 ? (
@@ -86,34 +128,36 @@ const FamilyProfilePage = () => {
             No assistance history available.
           </div>
         ) : (
-          <table className="min-w-full bg-white border">
-            <thead>
-              <tr className="bg-gray-100 text-left text-sm text-gray-700">
-                <th className="py-3 px-4 border">Date</th>
-                <th className="py-3 px-4 border">Assistance Type</th>
-                <th className="py-3 px-4 border">Provider Organization</th>
-                <th className="py-3 px-4 border">Notes</th>
-                <th className="py-3 px-4 border">Recorded by</th>
-              </tr>
-            </thead>
-            <tbody>
-              {family.assistanceHistory.map((assistance) => (
-                <tr key={assistance.id}>
-                  <td className="py-2 px-4 border">{assistance.date}</td>
-                  <td className="py-2 px-4 border">
-                    {assistance.assistanceType}
-                  </td>
-                  <td className="py-2 px-4 border">
-                    {assistance.providerOrganization || "N/A"}
-                  </td>
-                  <td className="py-2 px-4 border">{assistance.notes}</td>
-                  <td className="py-2 px-4 border">
-                    {assistance.recordedBy || "N/A"}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border">
+              <thead>
+                <tr className="bg-gray-100 text-left text-sm text-gray-700">
+                  <th className="py-3 px-4 border">Date</th>
+                  <th className="py-3 px-4 border">Assistance Type</th>
+                  <th className="py-3 px-4 border">Provider Organization</th>
+                  <th className="py-3 px-4 border">Notes</th>
+                  <th className="py-3 px-4 border">Recorded by</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {family.assistanceHistory.map((assistance) => (
+                  <tr key={assistance.id}>
+                    <td className="py-2 px-4 border">{assistance.date}</td>
+                    <td className="py-2 px-4 border">
+                      {assistance.assistanceType}
+                    </td>
+                    <td className="py-2 px-4 border">
+                      {assistance.providerOrganization || "N/A"}
+                    </td>
+                    <td className="py-2 px-4 border">{assistance.notes}</td>
+                    <td className="py-2 px-4 border">
+                      {assistance.recordedBy || "N/A"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </DashboardLayout>
