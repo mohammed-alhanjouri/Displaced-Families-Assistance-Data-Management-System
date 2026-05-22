@@ -4,19 +4,20 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 
+const locations = [
+  "Location 1",
+  "Location 2",
+  "Location 3",
+  "Location 4",
+  "Location 5",
+  "Location 6",
+  "Location 7",
+  "Location 8",
+  "Location 9",
+  "Location 10",
+];
+
 const GlobalSearchPage = () => {
-  const locations = [
-    "Location 1",
-    "Location 2",
-    "Location 3",
-    "Location 4",
-    "Location 5",
-    "Location 6",
-    "Location 7",
-    "Location 8",
-    "Location 9",
-    "Location 10",
-  ];
   const [formData, setFormData] = useState({
     search: "",
     location: "",
