@@ -1,7 +1,10 @@
 // Card containing household information details for the registration process
+import React, { useState } from "react";
 import Checkbox from "../../components/ui/Checkbox";
 
 const HouseholdInformationCard = () => {
+  const [isFemaleHeaded, setIsFemaleHeaded] = useState(false);
+
   return (
     <div className="bg-white p-6 rounded-lg shadow mt-6">
       <h2 className="text-lg font-semibold mb-4">Household Information</h2>
@@ -28,22 +31,26 @@ const HouseholdInformationCard = () => {
               id="isFemaleHeaded"
               name="isFemaleHeaded"
               label="Female-Headed Household"
+              checked={isFemaleHeaded}
+              onChange={(e: any) => setIsFemaleHeaded(e.target.checked)}
             />
           </div>
-          <div>
-            <label
-              htmlFor="femaleHeadReason"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Female Head Reason
-            </label>
-            <input
-              type="text"
-              id="femaleHeadReason"
-              name="femaleHeadReason"
-              className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          {isFemaleHeaded && (
+            <div>
+              <label
+                htmlFor="femaleHeadReason"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Female Head Reason
+              </label>
+              <input
+                type="text"
+                id="femaleHeadReason"
+                name="femaleHeadReason"
+                className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
         </div>
       </form>
     </div>
