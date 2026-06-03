@@ -114,6 +114,8 @@ const LoginPage = () => {
                 id="remember-me"
                 name="remember-me"
                 label="Remember me"
+                checked={true}
+                onChange={() => {}}
               />
             </div>
 

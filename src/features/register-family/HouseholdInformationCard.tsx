@@ -1,5 +1,5 @@
 // Card containing household information details for the registration process
-import React, { useState } from "react";
+import { useState } from "react";
 import Checkbox from "../../components/ui/Checkbox";
 
 const HouseholdInformationCard = () => {
