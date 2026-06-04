@@ -15,6 +15,8 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [location, setLocation] = useState("");
 
+  const [rememberMe, setRememberMe] = useState(false);
+
   const locations = ["Location 1", "Location 2", "Location 3"];
 
   const navigate = useNavigate();
@@ -114,8 +116,8 @@ const LoginPage = () => {
                 id="remember-me"
                 name="remember-me"
                 label="Remember me"
-                checked={true}
-                onChange={() => {}}
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
               />
             </div>
 
