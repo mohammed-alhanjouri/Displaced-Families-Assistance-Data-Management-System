@@ -5,10 +5,7 @@ import Card from "../components/ui/Card.tsx";
 import Checkbox from "../components/ui/Checkbox.tsx";
 import Input from "../components/ui/Input.tsx";
 import { useNavigate } from "react-router-dom";
-
-// interface LoginPageProps {
-//   onLogin: () => void;
-// }
+import { supabase } from "../lib/supabase.ts";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -21,10 +18,28 @@ const LoginPage = () => {
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [authError, setAuthError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    setAuthError("");
+    setLoading(true);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setAuthError(error.message);
+      return;
+    }
+
     navigate("/dashboard");
-    // onLogin();
   };
 
   return (
@@ -38,7 +53,7 @@ const LoginPage = () => {
         </div>
 
         <div className="mt-5 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label
                 htmlFor="email"
@@ -122,7 +137,9 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <Button type="submit">Sign in</Button>
+              <Button type="submit">
+                {loading ? "Signing in..." : "Sign in"}
+              </Button>
             </div>
           </form>
 
