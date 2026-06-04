@@ -16,6 +16,10 @@ const AppRoutes = () => {
       <Route path="/reports" element={<ReportsPage />} />
       <Route path="/logout" element={<div>Logout - Coming Soon</div>} />
       <Route path="/register-family" element={<RegisterFamilyPage />} />
+      <Route
+        path="/local-search"
+        element={<div>Local Search - Coming Soon</div>}
+      />
     </Routes>
   );
 };

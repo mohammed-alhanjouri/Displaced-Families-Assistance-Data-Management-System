@@ -43,7 +43,7 @@ const LocationInformationCard = () => {
             htmlFor="originalResidenceGovernorate"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Select Original Residence Governorate
+            Original Residence Governorate
           </label>
           <select
             id="originalResidenceGovernorate"

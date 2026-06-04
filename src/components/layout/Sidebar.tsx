@@ -1,6 +1,6 @@
 // Sidebar component for navigation links
 
-import { Link, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 interface SidebarProps {
   links: {

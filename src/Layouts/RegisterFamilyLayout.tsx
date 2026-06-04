@@ -6,8 +6,8 @@ const RegisterFamilyLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="min-h-screen bg-gray-100">
       <HeaderNav
         user={{
-          name: "Moha",
-          role: "Organization Manager",
+          name: "Sarah",
+          role: "Data Entry Staff",
         }}
       />
       <Sidebar
