@@ -5,6 +5,7 @@ import GlobalSearchPage from "../pages/GlobalSearchPage";
 import FamilyProfilePage from "../pages/FamilyProfilePage";
 import ReportsPage from "../pages/ReportsPage";
 import RegisterFamilyPage from "../pages/RegisterFamilyPage";
+import LocalSearchPage from "../pages/LocalSearchPage";
 
 const AppRoutes = () => {
   return (
@@ -16,10 +17,7 @@ const AppRoutes = () => {
       <Route path="/reports" element={<ReportsPage />} />
       <Route path="/logout" element={<div>Logout - Coming Soon</div>} />
       <Route path="/register-family" element={<RegisterFamilyPage />} />
-      <Route
-        path="/local-search"
-        element={<div>Local Search - Coming Soon</div>}
-      />
+      <Route path="/local-search" element={<LocalSearchPage />} />
     </Routes>
   );
 };
