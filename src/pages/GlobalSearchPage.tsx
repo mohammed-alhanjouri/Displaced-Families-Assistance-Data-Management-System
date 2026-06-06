@@ -273,7 +273,7 @@ const GlobalSearchPage = () => {
                 {filteredResults.length === 0 && (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={7}
                       className="py-4 px-4 text-center text-gray-500"
                     >
                       No results found.
