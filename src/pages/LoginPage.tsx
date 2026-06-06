@@ -42,6 +42,25 @@ const LoginPage = () => {
     navigate("/dashboard");
   };
 
+  const handleSignup = async () => {
+    setAuthError("");
+    setLoading(true);
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setAuthError(error.message);
+      return;
+    }
+
+    alert("Account created. Check your email if confirmation is required.");
+  };
+
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-10 lg:px-8">
       <Card className="flex w-full max-w-md flex-col items-center justify-center">
@@ -137,7 +156,7 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <Button type="submit">
+              <Button type="submit" disabled={loading}>
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </div>
@@ -147,12 +166,14 @@ const LoginPage = () => {
             Not registered? {"  "}
             <button
               type="button"
+              onClick={handleSignup}
               className="font-medium text-[#0066FF] hover:text-blue-700"
             >
               Sign up
             </button>
           </p>
         </div>
+        {authError && <p className="mt-3 text-sm text-red-600">{authError}</p>}
       </Card>
     </main>
   );
