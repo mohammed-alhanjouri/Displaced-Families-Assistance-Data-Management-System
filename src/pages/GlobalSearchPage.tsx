@@ -17,6 +17,8 @@ const locations = [
   "Location 10",
 ];
 
+const vulnerabilityLevels = ["Low", "Medium", "High"];
+
 const GlobalSearchPage = () => {
   const [formData, setFormData] = useState({
     search: "",
@@ -152,9 +154,11 @@ const GlobalSearchPage = () => {
                 className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select a vulnerability level</option>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
+                {vulnerabilityLevels.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
               </select>
             </div>
 
