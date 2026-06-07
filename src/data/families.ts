@@ -17,8 +17,9 @@ export type Family = {
   isFemaleHeaded: boolean;
   femaleHeadReason?: string;
   vulnerabilityScore: number;
-  vulnerabilityLevel: 'Low' | 'Medium' | 'High' | string;
+  vulnerabilityLevel: 'Low' | 'Medium' | 'High';
   lastAssistanceDate: string; // ISO date
+  lastUpdateDate?: string; // ISO date
   assistanceHistory: AssistanceRecord[];
 };
 
