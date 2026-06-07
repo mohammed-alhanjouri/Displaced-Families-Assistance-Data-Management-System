@@ -1,6 +1,8 @@
 import RegisterFamilyPageLayout from "../layouts/RegisterFamilyLayout";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import FamilyIdentificationCard from "../features/register-family/FamilyIdentificationCard";
+import HouseholdInformationCard from "../features/register-family/HouseholdInformationCard";
+import LocationInformationCard from "../features/register-family/LocationInformationCard";
 
 const UpdateFamilyInformation = () => {
   return (
@@ -18,6 +20,8 @@ const UpdateFamilyInformation = () => {
         </h1>
       </div>
       <FamilyIdentificationCard />
+      <HouseholdInformationCard />
+      <LocationInformationCard />
     </RegisterFamilyPageLayout>
   );
 };
