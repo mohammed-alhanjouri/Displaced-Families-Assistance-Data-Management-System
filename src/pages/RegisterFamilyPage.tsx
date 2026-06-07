@@ -3,6 +3,7 @@ import FamilyIdentificationCard from "../features/register-family/FamilyIdentifi
 import HouseholdInformationCard from "../features/register-family/HouseholdInformationCard";
 import LocationInformationCard from "../features/register-family/LocationInformationCard";
 import RegisterFamilyLayout from "../layouts/RegisterFamilyLayout";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 
 const RegisterFamilyPage = () => {
   // Navigation hook to redirect after form submission or cancellation (temporarily)
@@ -18,9 +19,15 @@ const RegisterFamilyPage = () => {
 
   return (
     <RegisterFamilyLayout>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        Register New Family
-      </h1>
+      <div>
+        <Breadcrumbs
+          items={[{ label: "Register Family", href: "/register-family" }]}
+        />
+        <h1 className="text-2xl font-bold text-gray-800 mt-3 mb-6">
+          Register New Family
+        </h1>
+      </div>
+
       <form onSubmit={handleSubmit}>
         <FamilyIdentificationCard />
         <HouseholdInformationCard />
