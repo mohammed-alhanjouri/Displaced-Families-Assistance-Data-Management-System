@@ -52,10 +52,7 @@ const LocalSearchPage = () => {
     <RegisterFamilyPageLayout>
       <div>
         <Breadcrumbs
-          items={[
-            { label: "Home", href: "/" },
-            { label: "Local Search", href: "/local-search" },
-          ]}
+          items={[{ label: "Local Search", href: "/local-search" }]}
         />
         <h1 className="text-2xl font-bold text-gray-800 mt-3">Local Search</h1>
       </div>
@@ -171,7 +168,7 @@ const LocalSearchPage = () => {
                         View Profile
                       </Link>
                       <Link
-                        to={`/families/${family.nationalID}`}
+                        to={`/update-family`}
                         className="text-sm text-[#0066FF] hover:text-blue-700"
                       >
                         Update Family
