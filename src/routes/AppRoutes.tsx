@@ -22,7 +22,7 @@ const AppRoutes = () => {
       <Route path="/local-search" element={<LocalSearchPage />} />
       <Route path="/update-family" element={<UpdateFamilyInformation />} />
       <Route
-        path="/vulnerability-assessment"
+        path="/vulnerability-assessment/:nationalID"
         element={<VulnerabilityAssessment />}
       />
     </Routes>
