@@ -7,6 +7,7 @@ import ReportsPage from "../pages/ReportsPage";
 import RegisterFamilyPage from "../pages/RegisterFamilyPage";
 import LocalSearchPage from "../pages/LocalSearchPage";
 import UpdateFamilyInformation from "../pages/UpdateFamilyInformationPage";
+import VulnerabilityAssessment from "../pages/VulnerabilityAssessment";
 
 const AppRoutes = () => {
   return (
@@ -20,6 +21,10 @@ const AppRoutes = () => {
       <Route path="/register-family" element={<RegisterFamilyPage />} />
       <Route path="/local-search" element={<LocalSearchPage />} />
       <Route path="/update-family" element={<UpdateFamilyInformation />} />
+      <Route
+        path="/vulnerability-assessment"
+        element={<VulnerabilityAssessment />}
+      />
     </Routes>
   );
 };
