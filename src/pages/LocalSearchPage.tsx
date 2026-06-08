@@ -168,13 +168,13 @@ const LocalSearchPage = () => {
                         View Profile
                       </Link>
                       <Link
-                        to={`/update-family`}
+                        to={`/update-family/${family.nationalID}`}
                         className="text-sm text-[#0066FF] hover:text-blue-700"
                       >
                         Update Family
                       </Link>
                       <Link
-                        to={`/families/${family.nationalID}`}
+                        to={`/vulnerability-assessment/${family.nationalID}`}
                         className="text-sm text-[#0066FF] hover:text-blue-700"
                       >
                         Update Vulnerability
