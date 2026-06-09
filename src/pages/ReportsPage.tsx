@@ -21,6 +21,9 @@ const locations = [
 ];
 
 const ReportsPage = () => {
+  const handleReset = () => {
+    // Logic to reset form or navigate back can be added here;
+  };
   return (
     <DashboardLayout>
       <div>
@@ -35,7 +38,7 @@ const ReportsPage = () => {
           <div className="grid grid-cols-4 gap-6">
             <label
               htmlFor="report-type"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-gray-700"
             >
               Report Type
             </label>
@@ -54,7 +57,7 @@ const ReportsPage = () => {
 
             <label
               htmlFor="location"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-gray-700"
             >
               Location
             </label>
@@ -73,7 +76,7 @@ const ReportsPage = () => {
 
             <label
               htmlFor="from-date"
-              className="block text-sm font-medium text-gray-800 mb-2"
+              className="block text-sm font-medium text-gray-800"
             >
               Date From
             </label>
@@ -86,7 +89,7 @@ const ReportsPage = () => {
 
             <label
               htmlFor="to-date"
-              className="block text-sm font-medium text-gray-800 mb-2"
+              className="block text-sm font-medium text-gray-800"
             >
               Date To
             </label>
@@ -96,6 +99,22 @@ const ReportsPage = () => {
               type="date"
               className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF] sm:text-sm/6"
             />
+          </div>
+          <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <button
+              type="submit"
+              className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+            >
+              Generate Report
+            </button>
+
+            <button
+              type="reset"
+              onClick={handleReset}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+            >
+              Reset
+            </button>
           </div>
         </form>
       </div>
