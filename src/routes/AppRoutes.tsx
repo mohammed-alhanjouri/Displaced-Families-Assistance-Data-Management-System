@@ -8,6 +8,7 @@ import RegisterFamilyPage from "../pages/RegisterFamilyPage";
 import LocalSearchPage from "../pages/LocalSearchPage";
 import UpdateFamilyInformation from "../pages/UpdateFamilyInformationPage";
 import VulnerabilityAssessment from "../pages/VulnerabilityAssessment";
+import AddAssistancePage from "../pages/AddAssistancePage";
 
 const AppRoutes = () => {
   return (
@@ -27,6 +28,10 @@ const AppRoutes = () => {
       <Route
         path="/vulnerability-assessment/:nationalID"
         element={<VulnerabilityAssessment />}
+      />
+      <Route
+        path="/add-assistance/:nationalID"
+        element={<AddAssistancePage />}
       />
     </Routes>
   );
