@@ -19,9 +19,10 @@ const FamilyProfilePage = () => {
     );
   }
   const vulnerabilityClasses: { [key: string]: string } = {
-    Low: "bg-green-100 text-green-700",
-    Medium: "bg-orange-100 text-orange-700",
-    High: "bg-red-100 text-red-700",
+    Low: "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-green-100 text-green-700",
+    Medium:
+      "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-orange-100 text-orange-700",
+    High: "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-red-100 text-red-700",
   };
   return (
     <DashboardLayout>
@@ -109,11 +110,7 @@ const FamilyProfilePage = () => {
               <span className="font-semibold text-gray-800">
                 Vulnerability Level:
               </span>{" "}
-              <span
-                className={`ml-2 rounded-lg px-3 py-1 text-sm font-medium ${
-                  vulnerabilityClasses[family.vulnerabilityLevel]
-                }`}
-              >
+              <span className={vulnerabilityClasses[family.vulnerabilityLevel]}>
                 {family.vulnerabilityLevel}
               </span>
             </p>
