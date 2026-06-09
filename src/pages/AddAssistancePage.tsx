@@ -182,6 +182,47 @@ const AddAssistancePage = () => {
             </div>
           </form>
         </div>
+
+        <div className=" bg-white p-6 rounded-lg shadow mt-6">
+          <h2 className="text-xl font-semibold mb-4">Assistance History</h2>
+
+          {family.assistanceHistory.length === 0 ? (
+            <div className="rounded-md border border-dashed border-gray-300 p-6 text-center text-gray-500">
+              No assistance history available.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border">
+                <thead>
+                  <tr className="bg-gray-100 text-left text-sm text-gray-700">
+                    <th className="py-3 px-4 border">Date</th>
+                    <th className="py-3 px-4 border">Assistance Type</th>
+                    <th className="py-3 px-4 border">Provider Organization</th>
+                    <th className="py-3 px-4 border">Notes</th>
+                    <th className="py-3 px-4 border">Recorded by</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {family.assistanceHistory.map((assistance) => (
+                    <tr key={assistance.id}>
+                      <td className="py-2 px-4 border">{assistance.date}</td>
+                      <td className="py-2 px-4 border">
+                        {assistance.assistanceType}
+                      </td>
+                      <td className="py-2 px-4 border">
+                        {assistance.providerOrganization || "N/A"}
+                      </td>
+                      <td className="py-2 px-4 border">{assistance.notes}</td>
+                      <td className="py-2 px-4 border">
+                        {assistance.recordedBy || "N/A"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </RegisterFamilyPageLayout>
     </div>
   );
