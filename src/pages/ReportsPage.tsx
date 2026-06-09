@@ -118,6 +118,20 @@ const ReportsPage = () => {
           </div>
         </form>
       </div>
+      <div className="bg-white p-4 rounded-lg shadow mt-6">
+        <h2 className="text-xl font-semibold mb-4">Report Output</h2>
+        <p className="text-gray-500">
+          [Report preview placeholder (chart/table depending on type)]
+        </p>
+        <div className="mt-6 flex flex-wrap justify-end gap-3">
+          <button
+            type="button"
+            className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+          >
+            Export as PDF
+          </button>
+        </div>
+      </div>
     </DashboardLayout>
   );
 };
