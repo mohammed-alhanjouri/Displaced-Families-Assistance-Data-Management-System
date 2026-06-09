@@ -1,5 +1,6 @@
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import DashboardLayout from "../layouts/DashboardLayout";
+import { useState } from "react";
 
 const reportTypes = [
   "Family Summary",
@@ -21,8 +22,24 @@ const locations = [
 ];
 
 const ReportsPage = () => {
+  const [showReportOutput, setShowReportOutput] = useState(false);
+
   const handleReset = () => {
-    // Logic to reset form or navigate back can be added here;
+    setShowReportOutput(false);
+  };
+
+  const handleGenerateReport = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+    const reportType = formData.get("reportType") as string;
+    const location = formData.get("location") as string;
+    const fromDate = formData.get("fromDate") as string;
+    const toDate = formData.get("toDate") as string;
+
+    if (reportType && location && fromDate && toDate) {
+      setShowReportOutput(true);
+    }
   };
   return (
     <DashboardLayout>
@@ -34,7 +51,7 @@ const ReportsPage = () => {
       </div>
       <div className="bg-white p-4 rounded-lg shadow">
         <h2 className="text-xl font-semibold mb-4">Report Configuration</h2>
-        <form>
+        <form onSubmit={handleGenerateReport}>
           <div className="grid grid-cols-4 gap-6">
             <label
               htmlFor="report-type"
@@ -118,20 +135,23 @@ const ReportsPage = () => {
           </div>
         </form>
       </div>
-      <div className="bg-white p-4 rounded-lg shadow mt-6">
-        <h2 className="text-xl font-semibold mb-4">Report Output</h2>
-        <p className="text-gray-500">
-          [Report preview placeholder (chart/table depending on type)]
-        </p>
-        <div className="mt-6 flex flex-wrap justify-end gap-3">
-          <button
-            type="button"
-            className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
-          >
-            Export as PDF
-          </button>
+
+      {showReportOutput && (
+        <div className="bg-white p-4 rounded-lg shadow mt-6">
+          <h2 className="text-xl font-semibold mb-4">Report Output</h2>
+          <p className="text-gray-500">
+            [Report preview placeholder (chart/table depending on type)]
+          </p>
+          <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <button
+              type="button"
+              className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+            >
+              Export as PDF
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </DashboardLayout>
   );
 };
