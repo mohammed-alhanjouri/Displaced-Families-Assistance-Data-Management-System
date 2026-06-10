@@ -19,6 +19,13 @@ const locations = [
 
 const vulnerabilityLevels = ["Low", "Medium", "High"];
 
+const vulnerabilityClasses: { [key: string]: string } = {
+  Low: "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-green-100 text-green-700",
+  Medium:
+    "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-orange-100 text-orange-700",
+  High: "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-red-100 text-red-700",
+};
+
 const emptyFilters = {
   search: "",
   location: "",
@@ -253,7 +260,13 @@ const GlobalSearchPage = () => {
                       <td className="py-2 px-4 border">{family.phoneNumber}</td>
                       <td className="py-2 px-4 border">{family.location}</td>
                       <td className="py-2 px-4 border">
-                        {family.vulnerabilityLevel}
+                        <span
+                          className={
+                            vulnerabilityClasses[family.vulnerabilityLevel]
+                          }
+                        >
+                          {family.vulnerabilityLevel}
+                        </span>
                       </td>
                       <td className="py-2 px-4 border">
                         {family.lastAssistanceDate}
