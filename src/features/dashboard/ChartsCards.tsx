@@ -5,9 +5,9 @@ interface ChartsCardProps {
 
 const ChartsCard = ({ title, chart }: ChartsCardProps) => {
   return (
-    <div className="mt-10 rounded-lg bg-white p-4 shadow-sm">
-      <h2 className="mb-4 text-lg font-medium text-gray-700">{title}</h2>
-      <div className="h-48 bg-gray-200 flex items-center justify-center">
+    <div className="bg-white border border-gray-300 rounded-lg p-5">
+      <h2 className="mb-5 text-sm font-medium text-gray-800">{title}</h2>
+      <div className="flex h-52 items-center bg-gray-200 px-2 rounded-md">
         {chart}
       </div>
     </div>

@@ -15,10 +15,24 @@ const DashboardPage = () => {
       </div>
       <DashboardFilter />
       <StatsCards />
-      <ChartsCard
-        title="Families per Location"
-        chart={<p className="text-gray-500">[Chart Placeholder]</p>}
-      />
+      <section className="grid gap-6 grid-cols-2 mt-6">
+        <ChartsCard
+          title="Families per Location"
+          chart={
+            <span className="text-sm font-medium text-blue-600 underline">
+              Chart Placeholder
+            </span>
+          }
+        />
+        <ChartsCard
+          title="Vulnerability Levels (High / Medium / Low)"
+          chart={
+            <span className="text-sm font-medium text-blue-600 underline">
+              Chart Placeholder
+            </span>
+          }
+        />
+      </section>
     </DashboardLayout>
   );
 };
