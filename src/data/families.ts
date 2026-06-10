@@ -14,6 +14,13 @@ export type Family = {
   originalResidence: string;
   location: string;
   totalMembers: number;
+  familyMembers?: {
+    id: number;
+    name: string;
+    age: number;
+    gender: 'Male' | 'Female' | 'Other';
+    relationshipToHead: string;
+  }[];
   isFemaleHeaded: boolean;
   femaleHeadReason?: string;
   vulnerabilityScore: number;
@@ -31,10 +38,15 @@ export const familiesData: Family[] = [
     originalResidence: "Gaza City",
     location: "Location 1",
     totalMembers: 4,
+    familyMembers: [
+      { id: 1, name: "Lama", age: 40, gender: "Female", relationshipToHead: "Wife" },
+      { id: 2, name: "Osama", age: 5, gender: "Male", relationshipToHead: "Son" },
+      { id: 3, name: "Ola", age: 10, gender: "Female", relationshipToHead: "Daughter" },
+    ],
     isFemaleHeaded: false,
     vulnerabilityScore: 8,
     vulnerabilityLevel: "High",
-    lastAssistanceDate: "2024-05-15",
+    lastAssistanceDate: "2026-05-1",
     assistanceHistory: [
       {
         id: 1,
