@@ -1,9 +1,19 @@
+import {
+  familiesData,
+  totalFamilyMembers,
+  highVulnerabilityFamilies,
+  assistanceProvidedCount,
+} from "../../data/families";
+
 const StatsCards = () => {
   const stats = [
-    { title: "Total Families", value: 125 },
-    { title: "Total Persons", value: 300 },
-    { title: "High-Vulnerability Families", value: 25 },
-    { title: "Total Assistance Provided", value: 57 },
+    { title: "Total Families", value: familiesData.length },
+    { title: "Total Persons", value: totalFamilyMembers },
+    {
+      title: "High-Vulnerability Families",
+      value: highVulnerabilityFamilies.length,
+    },
+    { title: "Total Assistance Provided", value: assistanceProvidedCount },
   ];
 
   return (

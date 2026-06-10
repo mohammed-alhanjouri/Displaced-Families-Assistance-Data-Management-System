@@ -66,7 +66,14 @@ export const familiesData: Family[] = [
     vulnerabilityScore: 6,
     vulnerabilityLevel: "Medium",
     lastAssistanceDate: "2024-06-01",
-    assistanceHistory: [],
+    assistanceHistory: [{
+      id: 1,
+      date: "2026-05-15",
+      assistanceType: "Medical Aid",
+      providerOrganization: "WHO",
+      notes: "Support for chronic illness",
+      recordedBy: "Admin",
+    }],
   },
   {
     nationalID: 123456789,
@@ -176,3 +183,17 @@ export const familiesData: Family[] = [
     assistanceHistory: [],
   },
 ];
+
+export const totalFamilyMembers = familiesData.reduce(
+  (sum, family) => sum + family.totalMembers,
+  0
+);
+
+export const highVulnerabilityFamilies = familiesData.filter(
+  (family) => family.vulnerabilityLevel === "High"
+);
+
+export const assistanceProvidedCount = familiesData.reduce(
+  (count, family) => count + family.assistanceHistory.length,
+  0
+);
