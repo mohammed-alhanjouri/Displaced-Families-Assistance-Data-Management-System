@@ -125,7 +125,7 @@ const FamilyProfilePage = () => {
             No assistance history available.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-md border border-dashed border-gray-300 p-6">
             <table className="min-w-full bg-white border">
               <thead>
                 <tr className="bg-gray-100 text-left text-sm text-gray-700">
