@@ -30,6 +30,7 @@ const emptyFilters = {
 const GlobalSearchPage = () => {
   const [formData, setFormData] = useState(emptyFilters);
   const [appliedFilters, setAppliedFilters] = useState(emptyFilters);
+  const [hasSubmittedSearch, setHasSubmittedSearch] = useState(false);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -41,42 +42,14 @@ const GlobalSearchPage = () => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setAppliedFilters({ ...formData });
+    setHasSubmittedSearch(true);
   };
 
   const handleClear = () => {
     setFormData({ ...emptyFilters });
     setAppliedFilters({ ...emptyFilters });
+    setHasSubmittedSearch(false);
   };
-
-  const filteredResults = familiesData.filter((family) => {
-    const matchesSearch =
-      family.nationalID.toString().includes(appliedFilters.search) ||
-      family.familyHeadName
-        .toLowerCase()
-        .includes(appliedFilters.search.toLowerCase()) ||
-      family.phoneNumber.includes(appliedFilters.search);
-
-    const matchesLocation =
-      appliedFilters.location === "" ||
-      family.location === appliedFilters.location;
-
-    const matchesVulnerabilityLevel =
-      appliedFilters.vulnerabilityLevel === "" ||
-      family.vulnerabilityLevel === appliedFilters.vulnerabilityLevel;
-
-    const matchesDates =
-      (!appliedFilters.fromDate ||
-        family.lastAssistanceDate >= appliedFilters.fromDate) &&
-      (!appliedFilters.toDate ||
-        family.lastAssistanceDate <= appliedFilters.toDate);
-
-    return (
-      matchesSearch &&
-      matchesLocation &&
-      matchesVulnerabilityLevel &&
-      matchesDates
-    );
-  });
 
   const hasAppliedFilters =
     appliedFilters.search.trim() !== "" ||
@@ -84,6 +57,38 @@ const GlobalSearchPage = () => {
     appliedFilters.vulnerabilityLevel !== "" ||
     appliedFilters.fromDate !== "" ||
     appliedFilters.toDate !== "";
+
+  const filteredResults = hasAppliedFilters
+    ? familiesData.filter((family) => {
+        const matchesSearch =
+          family.nationalID.toString().includes(appliedFilters.search) ||
+          family.familyHeadName
+            .toLowerCase()
+            .includes(appliedFilters.search.toLowerCase()) ||
+          family.phoneNumber.includes(appliedFilters.search);
+
+        const matchesLocation =
+          appliedFilters.location === "" ||
+          family.location === appliedFilters.location;
+
+        const matchesVulnerabilityLevel =
+          appliedFilters.vulnerabilityLevel === "" ||
+          family.vulnerabilityLevel === appliedFilters.vulnerabilityLevel;
+
+        const matchesDates =
+          (!appliedFilters.fromDate ||
+            family.lastAssistanceDate >= appliedFilters.fromDate) &&
+          (!appliedFilters.toDate ||
+            family.lastAssistanceDate <= appliedFilters.toDate);
+
+        return (
+          matchesSearch &&
+          matchesLocation &&
+          matchesVulnerabilityLevel &&
+          matchesDates
+        );
+      })
+    : [];
 
   return (
     <DashboardLayout>
@@ -219,72 +224,60 @@ const GlobalSearchPage = () => {
         </div>
       </form>
 
-      {!hasAppliedFilters && (
+      {hasSubmittedSearch && (
         <div className="bg-white p-6 rounded-lg shadow-md mt-6">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
             Search Results
           </h2>
-          <h2 className="text-lg font-medium text-gray-700 mb-2">No Results</h2>
-          <p className="text-gray-500">No filters are applied</p>
-        </div>
-      )}
-
-      {hasAppliedFilters && (
-        <div className="bg-white p-6 rounded-lg shadow-md mt-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Search Results
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse table-auto">
-              <thead>
-                <tr className="bg-gray-100 text-left text-sm text-gray-700">
-                  <th className="py-3 px-4 border">National ID</th>
-                  <th className="py-3 px-4 border">Family Head Name</th>
-                  <th className="py-3 px-4 border">Phone</th>
-                  <th className="py-3 px-4 border">Current Camp/Location</th>
-                  <th className="py-3 px-4 border">Vulnerability Level</th>
-                  <th className="py-3 px-4 border">Last Assistance Date</th>
-                  <th className="py-3 px-4 border">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredResults.map((family) => (
-                  <tr key={family.nationalID} className="border-t">
-                    <td className="py-2 px-4 border">{family.nationalID}</td>
-                    <td className="py-2 px-4 border">
-                      {family.familyHeadName}
-                    </td>
-                    <td className="py-2 px-4 border">{family.phoneNumber}</td>
-                    <td className="py-2 px-4 border">{family.location}</td>
-                    <td className="py-2 px-4 border">
-                      {family.vulnerabilityLevel}
-                    </td>
-                    <td className="py-2 px-4 border">
-                      {family.lastAssistanceDate}
-                    </td>
-                    <td className="py-2 px-4 border">
-                      <Link
-                        to={`/families/${family.nationalID}`}
-                        className="text-sm text-[#0066FF] hover:text-blue-700"
-                      >
-                        View Profile
-                      </Link>
-                    </td>
+          {filteredResults.length > 0 ? (
+            <div className="overflow-x-auto rounded-md border border-dashed border-gray-300 p-6">
+              <table className="min-w-full border-collapse table-auto">
+                <thead>
+                  <tr className="bg-gray-100 text-left text-sm text-gray-700">
+                    <th className="py-3 px-4 border">National ID</th>
+                    <th className="py-3 px-4 border">Family Head Name</th>
+                    <th className="py-3 px-4 border">Phone</th>
+                    <th className="py-3 px-4 border">Current Camp/Location</th>
+                    <th className="py-3 px-4 border">Vulnerability Level</th>
+                    <th className="py-3 px-4 border">Last Assistance Date</th>
+                    <th className="py-3 px-4 border">Actions</th>
                   </tr>
-                ))}
-                {filteredResults.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="py-4 px-4 text-center text-gray-500"
-                    >
-                      No results found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredResults.map((family) => (
+                    <tr key={family.nationalID} className="border-t">
+                      <td className="py-2 px-4 border">{family.nationalID}</td>
+                      <td className="py-2 px-4 border">
+                        {family.familyHeadName}
+                      </td>
+                      <td className="py-2 px-4 border">{family.phoneNumber}</td>
+                      <td className="py-2 px-4 border">{family.location}</td>
+                      <td className="py-2 px-4 border">
+                        {family.vulnerabilityLevel}
+                      </td>
+                      <td className="py-2 px-4 border">
+                        {family.lastAssistanceDate}
+                      </td>
+                      <td className="py-2 px-4 border">
+                        <Link
+                          to={`/families/${family.nationalID}`}
+                          className="text-sm text-[#0066FF] hover:text-blue-700"
+                        >
+                          View Profile
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="rounded-md border border-dashed border-red-300 p-6 text-center text-red-500">
+              {hasAppliedFilters
+                ? "No results found."
+                : "No filters are applied."}
+            </div>
+          )}
         </div>
       )}
     </DashboardLayout>
