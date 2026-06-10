@@ -19,14 +19,17 @@ const locations = [
 
 const vulnerabilityLevels = ["Low", "Medium", "High"];
 
+const emptyFilters = {
+  search: "",
+  location: "",
+  vulnerabilityLevel: "",
+  fromDate: "",
+  toDate: "",
+};
+
 const GlobalSearchPage = () => {
-  const [formData, setFormData] = useState({
-    search: "",
-    location: "",
-    vulnerabilityLevel: "",
-    fromDate: "",
-    toDate: "",
-  });
+  const [formData, setFormData] = useState(emptyFilters);
+  const [appliedFilters, setAppliedFilters] = useState(emptyFilters);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -37,36 +40,35 @@ const GlobalSearchPage = () => {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setAppliedFilters({ ...formData });
   };
 
   const handleClear = () => {
-    setFormData({
-      search: "",
-      location: "",
-      vulnerabilityLevel: "",
-      fromDate: "",
-      toDate: "",
-    });
+    setFormData({ ...emptyFilters });
+    setAppliedFilters({ ...emptyFilters });
   };
 
   const filteredResults = familiesData.filter((family) => {
     const matchesSearch =
-      family.nationalID.toString().includes(formData.search) ||
+      family.nationalID.toString().includes(appliedFilters.search) ||
       family.familyHeadName
         .toLowerCase()
-        .includes(formData.search.toLowerCase()) ||
-      family.phoneNumber.includes(formData.search);
+        .includes(appliedFilters.search.toLowerCase()) ||
+      family.phoneNumber.includes(appliedFilters.search);
 
     const matchesLocation =
-      formData.location === "" || family.location === formData.location;
+      appliedFilters.location === "" ||
+      family.location === appliedFilters.location;
 
     const matchesVulnerabilityLevel =
-      formData.vulnerabilityLevel === "" ||
-      family.vulnerabilityLevel === formData.vulnerabilityLevel;
+      appliedFilters.vulnerabilityLevel === "" ||
+      family.vulnerabilityLevel === appliedFilters.vulnerabilityLevel;
 
     const matchesDates =
-      (!formData.fromDate || family.lastAssistanceDate >= formData.fromDate) &&
-      (!formData.toDate || family.lastAssistanceDate <= formData.toDate);
+      (!appliedFilters.fromDate ||
+        family.lastAssistanceDate >= appliedFilters.fromDate) &&
+      (!appliedFilters.toDate ||
+        family.lastAssistanceDate <= appliedFilters.toDate);
 
     return (
       matchesSearch &&
@@ -77,11 +79,11 @@ const GlobalSearchPage = () => {
   });
 
   const hasAppliedFilters =
-    formData.search.trim() !== "" ||
-    formData.location !== "" ||
-    formData.vulnerabilityLevel !== "" ||
-    formData.fromDate !== "" ||
-    formData.toDate !== "";
+    appliedFilters.search.trim() !== "" ||
+    appliedFilters.location !== "" ||
+    appliedFilters.vulnerabilityLevel !== "" ||
+    appliedFilters.fromDate !== "" ||
+    appliedFilters.toDate !== "";
 
   return (
     <DashboardLayout>
