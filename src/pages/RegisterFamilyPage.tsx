@@ -4,13 +4,29 @@ import HouseholdInformationCard from "../features/register-family/HouseholdInfor
 import LocationInformationCard from "../features/register-family/LocationInformationCard";
 import RegisterFamilyLayout from "../layouts/RegisterFamilyLayout";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import { useState } from "react";
 
 const RegisterFamilyPage = () => {
+  const [formData, setFormData] = useState({
+    nationalID: "",
+    headOfHousehold: "",
+    phoneNumber: "",
+    totalMembers: "",
+    location: "",
+  });
+
   // Navigation hook to redirect after form submission or cancellation (temporarily)
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFormData({
+      nationalID: "",
+      headOfHousehold: "",
+      phoneNumber: "",
+      totalMembers: "",
+      location: "",
+    });
   };
 
   const handleCancel = () => {
