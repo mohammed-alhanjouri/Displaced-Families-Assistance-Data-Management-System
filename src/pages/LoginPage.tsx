@@ -1,64 +1,215 @@
-import { useState } from "react";
+import { useState, type SubmitEvent } from "react";
 import logo from "../assets/react.svg";
 import Button from "../components/ui/Button.tsx";
 import Card from "../components/ui/Card.tsx";
 import Checkbox from "../components/ui/Checkbox.tsx";
 import Input from "../components/ui/Input.tsx";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase.ts";
+// Add Supabase and remember me preference imports
+import {
+  supabase,
+  getRememberMePreference,
+  setRememberMePreference,
+} from "../lib/supabase.ts";
+// Add camps fetching imports
+import { fetchCamps, type Camp } from "../lib/camps.ts";
+// Add auth user fetching and role helper imports
+import {
+  getCurrentAuthUser,
+  getRoleHomePath,
+  isDataEntryRole,
+  type AuthUser,
+} from "../features/auth/auth.ts";
+// Add useAuth hook import
+import { useAuth } from "../features/auth/useAuth.ts";
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [location, setLocation] = useState("");
-
-  const [rememberMe, setRememberMe] = useState(false);
-
-  const locations = ["Location 1", "Location 2", "Location 3"];
-
-  const navigate = useNavigate();
-
+  const [selectedCampId, setSelectedCampId] = useState("");
+  const [rememberMe, setRememberMe] = useState(getRememberMePreference);
   const [authError, setAuthError] = useState("");
+  const [authMessage, setAuthMessage] = useState("");
+  const [requiresCampSelection, setRequiresCampSelection] = useState(false);
+  const [camps, setCamps] = useState<Camp[]>([]);
   const [loading, setLoading] = useState(false);
+  const [campLoading, setCampLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const navigate = useNavigate();
+  const { refreshAuthUser } = useAuth();
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // Fetch camps for data entry staff and manage loading state
+  const loadCamps = async () => {
+    setCampLoading(true);
 
-    setAuthError("");
-    setLoading(true);
+    try {
+      const campOptions = await fetchCamps();
+      setCamps(campOptions);
+      return campOptions;
+    } finally {
+      setCampLoading(false);
+    }
+  };
+  // Convert the login identifier to an email if it's a username, using a Supabase RPC function
+  const resolveLoginEmail = async () => {
+    const loginIdentifier = identifier.trim();
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setAuthError(error.message);
-      return;
+    if (loginIdentifier.includes("@")) {
+      return loginIdentifier;
     }
 
-    navigate("/dashboard");
+    // Supabase RPC (Remote Procedure Call) function to resolve username to email
+    const { data, error } = await supabase.rpc("resolve_login_email", {
+      login_identifier: loginIdentifier,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (typeof data !== "string" || !data.includes("@")) {
+      throw new Error("No active account was found for this username.");
+    }
+
+    return data;
   };
 
-  const handleSignup = async () => {
-    setAuthError("");
-    setLoading(true);
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setAuthError(error.message);
+  // Complete the login process for data entry staff by updating their assigned camp and refreshing their auth state
+  const completeDataEntryLogin = async (authUser: AuthUser) => {
+    if (!selectedCampId) {
+      setAuthMessage("Select your working location / camp to continue.");
       return;
     }
 
-    alert("Account created. Check your email if confirmation is required.");
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ assigned_camp_id: selectedCampId })
+      .eq("id", authUser.id)
+      .select("assigned_camp_id")
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data) {
+      throw new Error("Your profile could not be updated with this camp.");
+    }
+
+    await refreshAuthUser();
+    navigate(getRoleHomePath(authUser.role), { replace: true });
+  };
+
+  // Login Flow
+  const handleLogin = async (e: SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthMessage("");
+
+    if (!identifier.trim() || !password) {
+      setAuthError("Enter your Email/Username and password.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Check if the user needs to select a camp (for data entry staff) before completing the login process
+      if (requiresCampSelection) {
+        const currentUser = await getCurrentAuthUser();
+
+        if (!currentUser || !isDataEntryRole(currentUser.role)) {
+          setRequiresCampSelection(false);
+          throw new Error("Please sign in again.");
+        }
+
+        await completeDataEntryLogin(currentUser);
+        return;
+      }
+      // Actual Supabase Login Process
+      // Set the remember me preference in local storage
+      setRememberMePreference(rememberMe);
+
+      // Resolve the login identifier and sign in with Supabase
+      const loginEmail = await resolveLoginEmail();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password,
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Fetch and validate the authenticated user and handle role-based navigation
+      const authUser = await getCurrentAuthUser();
+
+      if (!authUser) {
+        throw new Error("Unable to verify the signed-in user.");
+      }
+
+      // Data Entry Staff require an additional step to select their working location / camp before completing the login process
+      if (isDataEntryRole(authUser.role)) {
+        await loadCamps();
+        setRequiresCampSelection(true);
+
+        if (!selectedCampId) {
+          setAuthMessage("Select your working location / camp to continue.");
+          return;
+        }
+
+        await completeDataEntryLogin(authUser);
+        return;
+      }
+
+      // Refresh the authenticated user and navigate to their home page based on their role
+      await refreshAuthUser();
+      navigate(getRoleHomePath(authUser.role), { replace: true });
+    } catch (error) {
+      // Error and Cleanup Handling
+      setAuthError(
+        error instanceof Error ? error.message : "Unable to sign in.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle Forgot Password Flow
+  const handleForgotPassword = async () => {
+    setAuthError("");
+    setAuthMessage("");
+
+    if (!identifier.trim()) {
+      setAuthError("Enter your email or username to receive a reset link.");
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      // Resolve the login identifier and send a Supabase password reset link
+      const email = await resolveLoginEmail();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`,
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      setAuthMessage(
+        "If this account exists, Supabase will send a password reset link.",
+      );
+    } catch (error) {
+      setAuthError(
+        error instanceof Error
+          ? error.message
+          : "Unable to send a password reset link.",
+      );
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   return (
@@ -75,20 +226,20 @@ const LoginPage = () => {
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label
-                htmlFor="email"
+                htmlFor="identifier"
                 className="block text-sm/6 font-medium text-gray-800"
               >
-                Email
+                Email / Username
               </label>
               <Input
-                id="email"
-                name="email"
-                type="email"
+                id="identifier"
+                name="identifier"
+                type="text"
                 required
-                autoComplete="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="username"
+                placeholder="Enter your email or username"
+                value={identifier}
+                onChange={(event) => setIdentifier(event.target.value)}
               />
             </div>
 
@@ -103,9 +254,11 @@ const LoginPage = () => {
                 <div className="text-sm">
                   <button
                     type="button"
+                    onClick={handleForgotPassword}
+                    disabled={resetLoading || loading}
                     className="text-[#0066FF] hover:text-blue-700"
                   >
-                    Forgot password?
+                    {resetLoading ? "Sending Reset Link..." : "Forgot password?"}
                   </button>
                 </div>
               </div>
@@ -117,63 +270,65 @@ const LoginPage = () => {
                 autoComplete="current-password"
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(event) => setPassword(event.target.value)}
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="working-location"
-                className="block text-sm font-medium text-gray-800"
-              >
-                Working Location / Camp
-              </label>
-              <div className="mt-2">
-                <select
-                  id="working-location"
-                  name="working-location"
-                  required
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF] sm:text-sm"
+            {requiresCampSelection && (
+              <div>
+                <label
+                  htmlFor="working-location"
+                  className="block text-sm font-medium text-gray-800"
                 >
-                  <option value="">Select a location</option>
-                  {locations.map((location) => (
-                    <option key={location} value={location}>
-                      {location}
+                  Working Location / Camp
+                </label>
+                <div className="mt-2">
+                  <select
+                    id="working-location"
+                    name="working-location"
+                    required
+                    value={selectedCampId}
+                    onChange={(event) => setSelectedCampId(event.target.value)}
+                    disabled={campLoading}
+                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF] disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
+                  >
+                    <option value="">
+                      {campLoading ? "Loading camps..." : "Select a location"}
                     </option>
-                  ))}
-                </select>
+                    {camps.map((camp) => (
+                      <option key={camp.id} value={camp.id}>
+                        {camp.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
+            )}
 
-              <Checkbox
-                id="remember-me"
-                name="remember-me"
-                label="Remember me"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-            </div>
+            <Checkbox
+              id="remember-me"
+              name="remember-me"
+              label="Remember me"
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.target.checked)}
+            />
+
+            {authError && <p className="text-sm text-red-600">{authError}</p>}
+            {authMessage && (
+              <p className="text-sm text-green-700">{authMessage}</p>
+            )}
 
             <div>
               <Button type="submit" disabled={loading}>
-                {loading ? "Signing in..." : "Sign in"}
+                {loading
+                  ? "Signing in..."
+                  : requiresCampSelection
+                    ? "Continue as Data Entry Staff"
+                    : "Sign in"}
               </Button>
             </div>
           </form>
-
-          <p className="mt-10 text-center text-sm text-gray-500">
-            Not registered? {"  "}
-            <button
-              type="button"
-              onClick={handleSignup}
-              className="font-medium text-[#0066FF] hover:text-blue-700"
-            >
-              Sign up
-            </button>
-          </p>
         </div>
-        {authError && <p className="mt-3 text-sm text-red-600">{authError}</p>}
       </Card>
     </main>
   );
