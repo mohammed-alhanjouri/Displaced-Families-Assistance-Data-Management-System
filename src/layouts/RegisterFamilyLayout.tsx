@@ -1,14 +1,22 @@
 import HeaderNav from "../components/layout/HeaderNav";
 import Sidebar from "../components/layout/Sidebar";
+import { getRoleLabel } from "../features/auth/auth";
+import { useAuth } from "../features/auth/useAuth";
 
 const RegisterFamilyLayout = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-gray-100">
       <HeaderNav
-        user={{
-          name: "Sarah",
-          role: "Data Entry Staff",
-        }}
+        user={
+          user
+            ? {
+                name: user.name,
+                role: getRoleLabel(user.role),
+              }
+            : null
+        }
       />
       <Sidebar
         links={[
