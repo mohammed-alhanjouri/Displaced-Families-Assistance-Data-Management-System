@@ -14,6 +14,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             ? {
                 name: user.name,
                 role: getRoleLabel(user.role),
+                location:
+                  user.role === "data_entry_staff"
+                    ? (user.assignedCampName ?? "")
+                    : "",
               }
             : null
         }

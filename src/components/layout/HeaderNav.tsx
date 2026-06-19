@@ -4,6 +4,7 @@ interface HeaderNavProps {
   user: {
     name: string;
     role: string;
+    location?: string;
   } | null;
 }
 
@@ -31,6 +32,15 @@ const HeaderNav = ({ user }: HeaderNavProps) => {
                   {user.role}
                 </span>
               </span>
+              {user.location && (
+                <span className="text-sm text-gray-600">
+                  Location:
+                  <span className="font-semibold text-[#0066FF]">
+                    {" "}
+                    {user.location}
+                  </span>
+                </span>
+              )}
             </>
           ) : (
             <a

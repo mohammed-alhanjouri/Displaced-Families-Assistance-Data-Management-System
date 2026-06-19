@@ -14,6 +14,9 @@ export interface UserProfile {
   user_role: UserRole;
   assigned_camp_id: string | null;
   status: "active" | "inactive";
+  assigned_camp?: {
+    name: string;
+  } | null;
 }
 
 // Define the structure of the authenticated user object used in the app
@@ -23,6 +26,7 @@ export interface AuthUser {
   name: string;
   role: UserRole;
   assignedCampId: string | null;
+  assignedCampName: string | null;
 }
 
 // Define a mapping of role aliases to official user roles
@@ -78,7 +82,7 @@ export const getUserRole = (user: User, profile: UserProfile | null) => {
 export const fetchCurrentProfile = async (userId: string) => {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, email, user_role, assigned_camp_id, status")
+    .select("id, full_name, email, user_role, assigned_camp_id, status, assigned_camp:camps(name)")
     .eq("id", userId)
     .maybeSingle();
 
@@ -109,6 +113,7 @@ export const buildAuthUser = async (user: User) => {
     name: profile?.full_name ?? user.email ?? "User",
     role,
     assignedCampId: profile?.assigned_camp_id ?? null,
+    assignedCampName: profile?.assigned_camp?.name ?? null
   } satisfies AuthUser;
 };
 
