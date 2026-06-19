@@ -1,14 +1,22 @@
 import HeaderNav from "../components/layout/HeaderNav";
 import Sidebar from "../components/layout/Sidebar";
+import { getRoleLabel } from "../features/auth/auth";
+import { useAuth } from "../features/auth/useAuth";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-gray-100">
       <HeaderNav
-        user={{
-          name: "Moha",
-          role: "Organization Manager",
-        }}
+        user={
+          user
+            ? {
+                name: user.name,
+                role: getRoleLabel(user.role),
+              }
+            : null
+        }
       />
       <Sidebar
         links={[
