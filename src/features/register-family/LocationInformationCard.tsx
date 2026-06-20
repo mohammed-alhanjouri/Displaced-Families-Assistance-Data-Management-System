@@ -1,19 +1,42 @@
-// Card containing location information details for the registration process
+// Import the real Camp type from
+import type { Camp } from "../../lib/camps";
+import type {
+  FamilyRegistrationChangeHandler,
+  FamilyRegistrationErrors,
+  FamilyRegistrationValues,
+} from "./formTypes";
 
-const locations = [
-  "Location 1",
-  "Location 2",
-  "Location 3",
-  "Location 4",
-  "Location 5",
-  "Location 6",
-  "Location 7",
-  "Location 8",
-  "Location 9",
-  "Location 10",
-];
+// Define a governorate to cities mapping for the original residence city dropdown
+const citiesByGovernorate: Record<string, string[]> = {
+  "North Gaza": ["Beit Lahia", "Beit Hanoun", "Jabalia"],
+  Gaza: ["Gaza City", "Al-Zahra", "Juhor ad-Dik"],
+  "Deir al-Balah": ["Deir al-Balah", "Al-Nuseirat", "Al-Maghazi", "Bureij"],
+  "Khan Younis": ["Khan Younis", "Abasan al-Kabira", "Bani Suheila"],
+  Rafah: ["Rafah", "Al-Shawka", "Al-Nasr"],
+};
 
-const LocationInformationCard = () => {
+interface LocationInformationCardProps {
+  values: FamilyRegistrationValues;
+  errors: FamilyRegistrationErrors;
+  onChange: FamilyRegistrationChangeHandler;
+  camps: Camp[];
+  isLoadingCamps: boolean;
+  campLoadError: string;
+  disabled?: boolean;
+}
+
+// The city dropdown is dynamically populated based on the selected governorate. If no governorate is selected, the city dropdown is disabled.
+const LocationInformationCard = ({
+  values,
+  errors,
+  onChange,
+  camps,
+  isLoadingCamps,
+  campLoadError,
+  disabled = false,
+}: LocationInformationCardProps) => {
+  const cities = citiesByGovernorate[values.originalResidenceGovernorate] ?? [];
+
   return (
     <div className="bg-white p-6 rounded-lg shadow mt-6">
       <h2 className="text-lg font-semibold mb-4">Location Information</h2>
@@ -28,15 +51,33 @@ const LocationInformationCard = () => {
           <select
             id="currentLocation"
             name="currentLocation"
+            required
+            value={values.currentCampId}
+            onChange={(event) => onChange("currentCampId", event.target.value)}
+            disabled={disabled || isLoadingCamps || Boolean(campLoadError)}
+            aria-invalid={Boolean(errors.currentCampId)}
+            aria-describedby={
+              errors.currentCampId ? "currentCampId-error" : undefined
+            }
             className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Select a location</option>
-            {locations.map((location) => (
-              <option key={location} value={location}>
-                {location}
+            <option value="">
+              {isLoadingCamps ? "Loading camps..." : "Select a camp"}
+            </option>
+            {camps.map((camp) => (
+              <option key={camp.id} value={camp.id}>
+                {camp.name}
               </option>
             ))}
           </select>
+          {campLoadError && (
+            <p className="mt-1 text-sm text-red-600">{campLoadError}</p>
+          )}
+          {errors.currentCampId && (
+            <p id="currentCampId-error" className="mt-1 text-sm text-red-600">
+              {errors.currentCampId}
+            </p>
+          )}
         </div>
         <div>
           <label
@@ -45,20 +86,39 @@ const LocationInformationCard = () => {
           >
             Original Residence Governorate
           </label>
+          {/* Selected governorate comes from the form values, options come from the citiesByGovernorate mapping */}
           <select
             id="originalResidenceGovernorate"
             name="originalResidenceGovernorate"
+            required
+            value={values.originalResidenceGovernorate}
+            onChange={(event) =>
+              onChange("originalResidenceGovernorate", event.target.value)
+            }
+            disabled={disabled}
+            aria-invalid={Boolean(errors.originalResidenceGovernorate)}
+            aria-describedby={
+              errors.originalResidenceGovernorate
+                ? "originalResidenceGovernorate-error"
+                : undefined
+            }
             className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            defaultValue=""
           >
-            <option value="" disabled>
-              Select a governorate
-            </option>
-            <option value="northGaza">North Gaza</option>
-            <option value="gaza">Gaza</option>
-            <option value="middleGaza">Middle Gaza</option>
-            <option value="southGaza">South Gaza</option>
+            <option value="">Select a governorate</option>
+            {Object.keys(citiesByGovernorate).map((governorate) => (
+              <option key={governorate} value={governorate}>
+                {governorate}
+              </option>
+            ))}
           </select>
+          {errors.originalResidenceGovernorate && (
+            <p
+              id="originalResidenceGovernorate-error"
+              className="mt-1 text-sm text-red-600"
+            >
+              {errors.originalResidenceGovernorate}
+            </p>
+          )}
         </div>
         <div>
           <label
@@ -67,19 +127,40 @@ const LocationInformationCard = () => {
           >
             Original Residence City
           </label>
+          {/* City options come from the selected governorate only */}
           <select
             id="originalResidenceCity"
             name="originalResidenceCity"
+            required
+            value={values.originalResidenceCity}
+            onChange={(event) =>
+              onChange("originalResidenceCity", event.target.value)
+            }
+            // City dropdown is disabled if no governorate is selected
+            disabled={disabled || !values.originalResidenceGovernorate}
+            aria-invalid={Boolean(errors.originalResidenceCity)}
+            aria-describedby={
+              errors.originalResidenceCity
+                ? "originalResidenceCity-error"
+                : undefined
+            }
             className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            defaultValue=""
           >
-            <option value="" disabled>
-              Select a city
-            </option>
-            <option value="city1">City 1</option>
-            <option value="city2">City 2</option>
-            <option value="city3">City 3</option>
+            <option value="">Select a city</option>
+            {cities.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
           </select>
+          {errors.originalResidenceCity && (
+            <p
+              id="originalResidenceCity-error"
+              className="mt-1 text-sm text-red-600"
+            >
+              {errors.originalResidenceCity}
+            </p>
+          )}
         </div>
       </div>
     </div>
