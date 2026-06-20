@@ -39,15 +39,15 @@ const RequireAuth = ({
   children: ReactNode;
 }) => {
   const { loading, user } = useAuth();
-// Check if the authentication state is still loading, if so, show a loading indicator
+  // Check if the authentication state is still loading, if so, show a loading indicator
   if (loading) {
     return <LoadingRoute />;
   }
-// If the user is not authenticated, redirect to the login page
+  // If the user is not authenticated, redirect to the login page
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-// If the user is authenticated but does not have the required role, redirect to their home page based on their role
+  // If the user is authenticated but does not have the required role, redirect to their home page based on their role
   if (!allowedRoles.includes(user.role)) {
     return <Navigate to={getRoleHomePath(user.role)} replace />;
   }
