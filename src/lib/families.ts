@@ -1,6 +1,10 @@
 import { supabase } from "./supabase";
 import type { FamilyRegistrationValues } from "../features/register-family/formTypes";
 
+export type VulnerabilityLevel = "Low" | "Medium" | "High";
+
+type RelatedRecord<T> = T | T[] | null;
+
 // Type representing the structure of a family row in the database
 type FamilyRow = {
   id: string;
@@ -15,7 +19,7 @@ type FamilyRow = {
   original_residence_city: string;
   created_at: string;
   updated_at: string;
-  current_camp: { name: string }[] | null;
+  current_camp: RelatedRecord<{ name: string }>;
 };
 
 // Type representing the structure of a family record used in the application
@@ -35,9 +39,117 @@ export type FamilyRecord = {
   updatedAt: string;
 };
 
+type AssistanceRow = {
+  id: string;
+  family_id: string;
+  assistance_type: string;
+  assistance_date: string;
+  provider_organization: string;
+  notes: string | null;
+  recorded_by: string;
+  created_at: string;
+  updated_at: string;
+  recorded_by_profile: RelatedRecord<{
+    full_name: string | null;
+    email: string | null;
+  }>;
+};
+
+export type AssistanceRecord = {
+  id: string;
+  familyId: string;
+  assistanceType: string;
+  assistanceDate: string;
+  providerOrganization: string;
+  notes: string | null;
+  recordedBy: string;
+  recordedByName: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AssistanceFormValues = {
+  familyId: string;
+  assistanceType: string;
+  assistanceDate: string;
+  providerOrganization: string;
+  notes: string;
+};
+
+type VulnerabilityAssessmentRow = {
+  id: string;
+  family_id: string;
+  has_elderly_member: boolean;
+  elderly_members_count: number;
+  has_disability: boolean;
+  disabilities_count: number;
+  is_large_family: boolean;
+  is_female_headed: boolean;
+  score: number;
+  level: VulnerabilityLevel;
+  assessed_by: string;
+  created_at: string;
+  updated_at: string;
+  assessed_by_profile: RelatedRecord<{
+    full_name: string | null;
+    email: string | null;
+  }>;
+};
+
+export type VulnerabilityAssessmentRecord = {
+  id: string;
+  familyId: string;
+  hasElderlyMember: boolean;
+  elderlyMembersCount: number;
+  hasDisability: boolean;
+  disabilitiesCount: number;
+  isLargeFamily: boolean;
+  isFemaleHeaded: boolean;
+  score: number;
+  level: VulnerabilityLevel;
+  assessedBy: string;
+  assessedByName: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type VulnerabilityAssessmentValues = {
+  familyId: string;
+  hasElderlyMember: boolean;
+  elderlyMembersCount: number;
+  hasDisability: boolean;
+  disabilitiesCount: number;
+  totalMembers: number;
+  isFemaleHeaded: boolean;
+};
+
+export type DashboardStats = {
+  totalFamilies: number;
+  totalPersons: number;
+  highVulnerabilityFamilies: number;
+  assistanceProvidedCount: number;
+};
+
 // Select query for fetching family data
 const familySelect =
   "id, national_id, family_head_name, phone_number, total_members, is_female_headed, female_head_reason, current_camp_id, original_residence_governorate, original_residence_city, created_at, updated_at, current_camp:camps(name)";
+
+const assistanceSelect =
+  "id, family_id, assistance_type, assistance_date, provider_organization, notes, recorded_by, created_at, updated_at, recorded_by_profile:profiles!family_assistance_recorded_by_fkey(full_name, email)";
+
+const vulnerabilityAssessmentSelect =
+  "id, family_id, has_elderly_member, elderly_members_count, has_disability, disabilities_count, is_large_family, is_female_headed, score, level, assessed_by, created_at, updated_at, assessed_by_profile:profiles!vulnerability_assessments_assessed_by_fkey(full_name, email)";
+
+const getRelatedRecord = <T>(record: RelatedRecord<T>) =>
+  Array.isArray(record) ? (record[0] ?? null) : record;
+
+const getProfileDisplayName = (
+  profile: RelatedRecord<{ full_name: string | null; email: string | null }>,
+) => {
+  const relatedProfile = getRelatedRecord(profile);
+
+  return relatedProfile?.full_name ?? relatedProfile?.email ?? null;
+};
 
 // Convert a FamilyRow from the database into a FamilyRecord used in the application
 const toFamilyRecord = (row: FamilyRow): FamilyRecord => ({
@@ -49,12 +161,66 @@ const toFamilyRecord = (row: FamilyRow): FamilyRecord => ({
   isFemaleHeaded: row.is_female_headed,
   femaleHeadReason: row.female_head_reason,
   currentCampId: row.current_camp_id,
-  currentCampName: row.current_camp?.[0]?.name ?? null,
+  currentCampName: getRelatedRecord(row.current_camp)?.name ?? null,
   originalResidenceGovernorate: row.original_residence_governorate,
   originalResidenceCity: row.original_residence_city,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });
+
+const toAssistanceRecord = (row: AssistanceRow): AssistanceRecord => ({
+  id: row.id,
+  familyId: row.family_id,
+  assistanceType: row.assistance_type,
+  assistanceDate: row.assistance_date,
+  providerOrganization: row.provider_organization,
+  notes: row.notes,
+  recordedBy: row.recorded_by,
+  recordedByName: getProfileDisplayName(row.recorded_by_profile),
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+const toVulnerabilityAssessmentRecord = (
+  row: VulnerabilityAssessmentRow,
+): VulnerabilityAssessmentRecord => ({
+  id: row.id,
+  familyId: row.family_id,
+  hasElderlyMember: row.has_elderly_member,
+  elderlyMembersCount: row.elderly_members_count,
+  hasDisability: row.has_disability,
+  disabilitiesCount: row.disabilities_count,
+  isLargeFamily: row.is_large_family,
+  isFemaleHeaded: row.is_female_headed,
+  score: row.score,
+  level: row.level,
+  assessedBy: row.assessed_by,
+  assessedByName: getProfileDisplayName(row.assessed_by_profile),
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+export const calculateVulnerability = ({
+  totalMembers,
+  isFemaleHeaded,
+  hasElderlyMember,
+  hasDisability,
+}: {
+  totalMembers: number;
+  isFemaleHeaded: boolean;
+  hasElderlyMember: boolean;
+  hasDisability: boolean;
+}) => {
+  const score =
+    (hasElderlyMember ? 3 : 0) +
+    (hasDisability ? 3 : 0) +
+    (totalMembers > 5 ? 2 : 0) +
+    (isFemaleHeaded ? 2 : 0);
+  const level: VulnerabilityLevel =
+    score >= 8 ? "High" : score >= 6 ? "Medium" : "Low";
+
+  return { score, level };
+};
 
 // Fetch families from the database, optionally filtered by camp ID
 export const fetchFamilies = async (campId?: string) => {
@@ -120,6 +286,156 @@ export const updateFamilyByNationalId = async (
   }
 
   return toFamilyRecord(data as FamilyRow);
+};
+
+export const fetchDashboardStats = async (): Promise<DashboardStats> => {
+  const { data: families, error: familiesError } = await supabase
+    .from("families")
+    .select("id, total_members");
+
+  if (familiesError) {
+    throw familiesError;
+  }
+
+  const { count: assistanceCount, error: assistanceError } = await supabase
+    .from("family_assistance")
+    .select("id", { count: "exact", head: true });
+
+  if (assistanceError) {
+    throw assistanceError;
+  }
+
+  const { data: assessments, error: assessmentsError } = await supabase
+    .from("vulnerability_assessments")
+    .select("family_id, level, created_at")
+    .order("created_at", { ascending: false });
+
+  if (assessmentsError) {
+    throw assessmentsError;
+  }
+
+  const latestAssessmentByFamily = new Map<string, VulnerabilityLevel>();
+
+  for (const assessment of assessments ?? []) {
+    const row = assessment as {
+      family_id: string;
+      level: VulnerabilityLevel;
+    };
+
+    if (!latestAssessmentByFamily.has(row.family_id)) {
+      latestAssessmentByFamily.set(row.family_id, row.level);
+    }
+  }
+
+  return {
+    totalFamilies: families?.length ?? 0,
+    totalPersons: (families ?? []).reduce(
+      (sum, family) => sum + Number(family.total_members ?? 0),
+      0,
+    ),
+    highVulnerabilityFamilies: Array.from(
+      latestAssessmentByFamily.values(),
+    ).filter((level) => level === "High").length,
+    assistanceProvidedCount: assistanceCount ?? 0,
+  };
+};
+
+export const fetchAssistanceRecords = async (familyId: string) => {
+  const { data, error } = await supabase
+    .from("family_assistance")
+    .select(assistanceSelect)
+    .eq("family_id", familyId)
+    .order("assistance_date", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return ((data ?? []) as AssistanceRow[]).map(toAssistanceRecord);
+};
+
+export const createAssistanceRecord = async ({
+  familyId,
+  assistanceType,
+  assistanceDate,
+  providerOrganization,
+  notes,
+}: AssistanceFormValues) => {
+  const { data, error } = await supabase
+    .from("family_assistance")
+    .insert({
+      family_id: familyId,
+      assistance_type: assistanceType.trim(),
+      assistance_date: assistanceDate,
+      provider_organization: providerOrganization.trim(),
+      notes: notes.trim() || null,
+    })
+    .select(assistanceSelect)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return toAssistanceRecord(data as AssistanceRow);
+};
+
+export const fetchLatestVulnerabilityAssessment = async (familyId: string) => {
+  const { data, error } = await supabase
+    .from("vulnerability_assessments")
+    .select(vulnerabilityAssessmentSelect)
+    .eq("family_id", familyId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data
+    ? toVulnerabilityAssessmentRecord(data as VulnerabilityAssessmentRow)
+    : null;
+};
+
+export const createVulnerabilityAssessment = async ({
+  familyId,
+  hasElderlyMember,
+  elderlyMembersCount,
+  hasDisability,
+  disabilitiesCount,
+  totalMembers,
+  isFemaleHeaded,
+}: VulnerabilityAssessmentValues) => {
+  const { score, level } = calculateVulnerability({
+    totalMembers,
+    isFemaleHeaded,
+    hasElderlyMember,
+    hasDisability,
+  });
+
+  const { data, error } = await supabase
+    .from("vulnerability_assessments")
+    .insert({
+      family_id: familyId,
+      has_elderly_member: hasElderlyMember,
+      elderly_members_count: hasElderlyMember ? elderlyMembersCount : 0,
+      has_disability: hasDisability,
+      disabilities_count: hasDisability ? disabilitiesCount : 0,
+      is_large_family: totalMembers > 5,
+      is_female_headed: isFemaleHeaded,
+      score,
+      level,
+    })
+    .select(vulnerabilityAssessmentSelect)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return toVulnerabilityAssessmentRecord(data as VulnerabilityAssessmentRow);
 };
 
 // Filter families based on a search string, matching against national ID, family head name, or phone number
