@@ -1,24 +1,67 @@
-import {
-  familiesData,
-  totalFamilyMembers,
-  highVulnerabilityFamilies,
-  assistanceProvidedCount,
-} from "../../data/families";
+import { useEffect, useState } from "react";
+import { fetchDashboardStats, type DashboardStats } from "../../lib/families";
 
 const StatsCards = () => {
-  const stats = [
-    { title: "Total Families", value: familiesData.length },
-    { title: "Total Persons", value: totalFamilyMembers },
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadStats = async () => {
+      try {
+        const dashboardStats = await fetchDashboardStats();
+
+        if (isActive) {
+          setStats(dashboardStats);
+        }
+      } catch (error) {
+        if (isActive) {
+          setLoadError(
+            error instanceof Error
+              ? error.message
+              : "Unable to load dashboard statistics.",
+          );
+        }
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadStats();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const cards = [
+    { title: "Total Families", value: stats?.totalFamilies ?? 0 },
+    { title: "Total Persons", value: stats?.totalPersons ?? 0 },
     {
       title: "High-Vulnerability Families",
-      value: highVulnerabilityFamilies.length,
+      value: stats?.highVulnerabilityFamilies ?? 0,
     },
-    { title: "Total Assistance Provided", value: assistanceProvidedCount },
+    {
+      title: "Total Assistance Provided",
+      value: stats?.assistanceProvidedCount ?? 0,
+    },
   ];
+
+  if (loadError) {
+    return (
+      <section className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        {loadError}
+      </section>
+    );
+  }
 
   return (
     <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {stats.map((stat) => (
+      {cards.map((stat) => (
         <div
           key={stat.title}
           className="rounded-lg border border-gray-300 bg-white p-6 shadow-sm"
@@ -26,7 +69,9 @@ const StatsCards = () => {
           <h2 className="mb-2 text-sm font-medium text-gray-600">
             {stat.title}
           </h2>
-          <p className="text-2xl font-semibold text-[#0066FF]">{stat.value}</p>
+          <p className="text-2xl font-semibold text-[#0066FF]">
+            {isLoading ? "..." : stat.value}
+          </p>
         </div>
       ))}
     </section>
