@@ -33,10 +33,17 @@ export type FamilyRecord = {
   femaleHeadReason: string | null;
   currentCampId: string;
   currentCampName: string | null;
+  vulnerabilityLevel: VulnerabilityLevel | null;
   originalResidenceGovernorate: string;
   originalResidenceCity: string;
   createdAt: string;
   updatedAt: string;
+};
+
+type FamilyVulnerabilityLevelRow = {
+  family_id: string;
+  level: VulnerabilityLevel;
+  created_at: string;
 };
 
 type AssistanceRow = {
@@ -162,11 +169,49 @@ const toFamilyRecord = (row: FamilyRow): FamilyRecord => ({
   femaleHeadReason: row.female_head_reason,
   currentCampId: row.current_camp_id,
   currentCampName: getRelatedRecord(row.current_camp)?.name ?? null,
+  vulnerabilityLevel: null,
   originalResidenceGovernorate: row.original_residence_governorate,
   originalResidenceCity: row.original_residence_city,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });
+
+const fetchLatestVulnerabilityLevels = async (familyIds: string[]) => {
+  if (familyIds.length === 0) {
+    return new Map<string, VulnerabilityLevel>();
+  }
+
+  const { data, error } = await supabase
+    .from("vulnerability_assessments")
+    .select("family_id, level, created_at")
+    .in("family_id", familyIds)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const latestLevelByFamily = new Map<string, VulnerabilityLevel>();
+
+  for (const assessment of (data ?? []) as FamilyVulnerabilityLevelRow[]) {
+    if (!latestLevelByFamily.has(assessment.family_id)) {
+      latestLevelByFamily.set(assessment.family_id, assessment.level);
+    }
+  }
+
+  return latestLevelByFamily;
+};
+
+const withVulnerabilityLevels = async (families: FamilyRecord[]) => {
+  const latestLevelByFamily = await fetchLatestVulnerabilityLevels(
+    families.map((family) => family.id),
+  );
+
+  return families.map((family) => ({
+    ...family,
+    vulnerabilityLevel: latestLevelByFamily.get(family.id) ?? null,
+  }));
+};
 
 const toAssistanceRecord = (row: AssistanceRow): AssistanceRecord => ({
   id: row.id,
@@ -239,7 +284,9 @@ export const fetchFamilies = async (campId?: string) => {
     throw error;
   }
 
-  return ((data ?? []) as FamilyRow[]).map(toFamilyRecord);
+  const families = ((data ?? []) as FamilyRow[]).map(toFamilyRecord);
+
+  return withVulnerabilityLevels(families);
 };
 
 // Fetch a single family by its national ID
@@ -254,7 +301,15 @@ export const fetchFamilyByNationalId = async (nationalId: string) => {
     throw error;
   }
 
-  return data ? toFamilyRecord(data as FamilyRow) : null;
+  if (!data) {
+    return null;
+  }
+
+  const [family] = await withVulnerabilityLevels([
+    toFamilyRecord(data as FamilyRow),
+  ]);
+
+  return family ?? null;
 };
 
 // Update a family's information in the database based on their existing national ID
@@ -285,7 +340,11 @@ export const updateFamilyByNationalId = async (
     throw error;
   }
 
-  return toFamilyRecord(data as FamilyRow);
+  const [family] = await withVulnerabilityLevels([
+    toFamilyRecord(data as FamilyRow),
+  ]);
+
+  return family;
 };
 
 export const fetchDashboardStats = async (): Promise<DashboardStats> => {
@@ -439,17 +498,24 @@ export const createVulnerabilityAssessment = async ({
 };
 
 // Filter families based on a search string, matching against national ID, family head name, or phone number
-export const filterFamilies = (families: FamilyRecord[], search: string) => {
+export const filterFamilies = (
+  families: FamilyRecord[],
+  search: string,
+  vulnerabilityLevel: VulnerabilityLevel | "" = "",
+) => {
   const normalizedSearch = search.trim().toLowerCase();
 
-  if (!normalizedSearch) {
-    return families;
-  }
-
-  return families.filter(
-    (family) =>
+  return families.filter((family) => {
+    const matchesSearch =
+      !normalizedSearch ||
       family.nationalId.includes(normalizedSearch) ||
       family.familyHeadName.toLowerCase().includes(normalizedSearch) ||
-      family.phoneNumber.includes(normalizedSearch),
-  );
+      family.phoneNumber.includes(normalizedSearch);
+
+    const matchesVulnerabilityLevel =
+      vulnerabilityLevel === "" ||
+      family.vulnerabilityLevel === vulnerabilityLevel;
+
+    return matchesSearch && matchesVulnerabilityLevel;
+  });
 };
