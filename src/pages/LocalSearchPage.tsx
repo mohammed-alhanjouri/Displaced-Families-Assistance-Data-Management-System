@@ -165,15 +165,15 @@ const LocalSearchPage = () => {
                 <button
                   type="submit"
                   disabled={isSearching}
-                  className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+                  className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Apply
+                  {isSearching ? "Searching..." : "Apply"}
                 </button>
                 <button
                   type="button"
                   onClick={handleClear}
                   disabled={isSearching}
-                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Clear
                 </button>
@@ -189,14 +189,7 @@ const LocalSearchPage = () => {
             Search Results
           </h2>
 
-          {!hasAppliedFilters ? (
-            <>
-              <h2 className="text-lg font-medium text-gray-700 mb-2">
-                No Results
-              </h2>
-              <p className="text-gray-500">No filters are applied</p>
-            </>
-          ) : isSearching ? (
+          {isSearching ? (
             <p className="text-sm text-gray-600">
               Searching registered families...
             </p>
@@ -204,6 +197,13 @@ const LocalSearchPage = () => {
             <p className="text-sm text-red-600" role="alert">
               {searchError}
             </p>
+          ) : !hasAppliedFilters ? (
+            <>
+              <h2 className="text-lg font-medium text-gray-700 mb-2">
+                No Results
+              </h2>
+              <p className="text-gray-500">No filters are applied</p>
+            </>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full border-collapse table-auto">
