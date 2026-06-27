@@ -53,7 +53,7 @@ const roleLabels: Record<UserRole, string> = {
 const roleHomePaths: Record<UserRole, string> = {
   system_administrator: "/dashboard",
   organization_manager: "/dashboard",
-  data_entry_staff: "/register-family",
+  data_entry_staff: "/data-entry-dashboard",
 };
 
 export const normalizeUserRole = (role: unknown) => {
