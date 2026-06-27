@@ -111,7 +111,10 @@ const LocalSearchPage = () => {
     <RegisterFamilyPageLayout>
       <div>
         <Breadcrumbs
-          items={[{ label: "Local Search", href: "/local-search" }]}
+          items={[
+            { label: "Dashboard", href: "/data-entry-dashboard" },
+            { label: "Local Search", href: "/local-search" },
+          ]}
         />
         <h1 className="text-2xl font-bold text-gray-800 mt-3">Local Search</h1>
       </div>

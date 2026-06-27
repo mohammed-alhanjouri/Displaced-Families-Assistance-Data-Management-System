@@ -246,7 +246,10 @@ const RegisterFamilyPage = () => {
     <RegisterFamilyLayout>
       <div>
         <Breadcrumbs
-          items={[{ label: "Register Family", href: "/register-family" }]}
+          items={[
+            { label: "Dashboard", href: "/data-entry-dashboard" },
+            { label: "Register Family", href: "/register-family" },
+          ]}
         />
         <h1 className="text-2xl font-bold text-gray-800 mt-3 mb-6">
           Register New Family
