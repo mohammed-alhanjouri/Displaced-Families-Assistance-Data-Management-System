@@ -24,6 +24,7 @@ const RegisterFamilyLayout = ({ children }: { children: React.ReactNode }) => {
       />
       <Sidebar
         links={[
+          { name: "Dashboard", href: "/data-entry-dashboard" },
           { name: "Register Family", href: "/register-family" },
           { name: "Local Search", href: "/local-search" },
           { name: "Logout", href: "/logout" },
