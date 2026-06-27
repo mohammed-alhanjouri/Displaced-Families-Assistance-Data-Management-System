@@ -1,43 +1,63 @@
+import { useEffect, useState, type ChangeEvent, type SubmitEvent } from "react";
 import { Link } from "react-router-dom";
-import { familiesData } from "../data/families";
-import DashboardLayout from "../layouts/DashboardLayout";
-import { useState, type ChangeEvent, type FormEvent } from "react";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
-
-const locations = [
-  "Location 1",
-  "Location 2",
-  "Location 3",
-  "Location 4",
-  "Location 5",
-  "Location 6",
-  "Location 7",
-  "Location 8",
-  "Location 9",
-  "Location 10",
-];
-
-const vulnerabilityLevels = ["Low", "Medium", "High"];
-
-const vulnerabilityClasses: { [key: string]: string } = {
-  Low: "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-green-100 text-green-700",
-  Medium:
-    "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-orange-100 text-orange-700",
-  High: "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-red-100 text-red-700",
-};
+import { fetchCamps, type Camp } from "../lib/camps";
+import {
+  fetchFamilies,
+  filterFamilies,
+  type FamilyRecord,
+} from "../lib/families";
+import DashboardLayout from "../layouts/DashboardLayout";
 
 const emptyFilters = {
   search: "",
-  location: "",
-  vulnerabilityLevel: "",
-  fromDate: "",
-  toDate: "",
+  campId: "",
 };
+
+const formatDate = (value: string) =>
+  new Intl.DateTimeFormat("en-CA", { dateStyle: "medium" }).format(
+    new Date(value),
+  );
 
 const GlobalSearchPage = () => {
   const [formData, setFormData] = useState(emptyFilters);
   const [appliedFilters, setAppliedFilters] = useState(emptyFilters);
+  const [camps, setCamps] = useState<Camp[]>([]);
+  const [results, setResults] = useState<FamilyRecord[]>([]);
   const [hasSubmittedSearch, setHasSubmittedSearch] = useState(false);
+  const [isLoadingCamps, setIsLoadingCamps] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadCamps = async () => {
+      try {
+        const campOptions = await fetchCamps();
+
+        if (isActive) {
+          setCamps(campOptions);
+        }
+      } catch (error) {
+        if (isActive) {
+          setSearchError(
+            error instanceof Error ? error.message : "Unable to load camps.",
+          );
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingCamps(false);
+        }
+      }
+    };
+
+    void loadCamps();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -46,56 +66,56 @@ const GlobalSearchPage = () => {
     setFormData((current) => ({ ...current, [name]: value }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setAppliedFilters({ ...formData });
+    const nextAppliedFilters = { ...formData };
+    const hasFilters =
+      nextAppliedFilters.search.trim() !== "" ||
+      nextAppliedFilters.campId !== "";
+
+    setAppliedFilters(nextAppliedFilters);
     setHasSubmittedSearch(true);
+    setSearchError("");
+
+    if (!hasFilters) {
+      setResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+
+    try {
+      const families = await fetchFamilies();
+      const textMatches = filterFamilies(families, nextAppliedFilters.search);
+      setResults(
+        nextAppliedFilters.campId
+          ? textMatches.filter(
+              (family) => family.currentCampId === nextAppliedFilters.campId,
+            )
+          : textMatches,
+      );
+    } catch (error) {
+      setResults([]);
+      setSearchError(
+        error instanceof Error
+          ? error.message
+          : "Unable to search registered families. Please try again.",
+      );
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleClear = () => {
     setFormData({ ...emptyFilters });
     setAppliedFilters({ ...emptyFilters });
+    setResults([]);
+    setSearchError("");
     setHasSubmittedSearch(false);
   };
 
   const hasAppliedFilters =
-    appliedFilters.search.trim() !== "" ||
-    appliedFilters.location !== "" ||
-    appliedFilters.vulnerabilityLevel !== "" ||
-    appliedFilters.fromDate !== "" ||
-    appliedFilters.toDate !== "";
-
-  const filteredResults = hasAppliedFilters
-    ? familiesData.filter((family) => {
-        const matchesSearch =
-          family.nationalID.toString().includes(appliedFilters.search) ||
-          family.familyHeadName
-            .toLowerCase()
-            .includes(appliedFilters.search.toLowerCase()) ||
-          family.phoneNumber.includes(appliedFilters.search);
-
-        const matchesLocation =
-          appliedFilters.location === "" ||
-          family.location === appliedFilters.location;
-
-        const matchesVulnerabilityLevel =
-          appliedFilters.vulnerabilityLevel === "" ||
-          family.vulnerabilityLevel === appliedFilters.vulnerabilityLevel;
-
-        const matchesDates =
-          (!appliedFilters.fromDate ||
-            family.lastAssistanceDate >= appliedFilters.fromDate) &&
-          (!appliedFilters.toDate ||
-            family.lastAssistanceDate <= appliedFilters.toDate);
-
-        return (
-          matchesSearch &&
-          matchesLocation &&
-          matchesVulnerabilityLevel &&
-          matchesDates
-        );
-      })
-    : [];
+    appliedFilters.search.trim() !== "" || appliedFilters.campId !== "";
 
   return (
     <DashboardLayout>
@@ -132,101 +152,47 @@ const GlobalSearchPage = () => {
 
             <div>
               <label
-                htmlFor="search-location"
+                htmlFor="search-camp"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Location
+                Current Camp
               </label>
               <select
-                id="search-location"
-                name="location"
-                value={formData.location}
+                id="search-camp"
+                name="campId"
+                value={formData.campId}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isLoadingCamps}
+                className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
               >
-                <option value="">Select a location</option>
-                {locations.map((location) => (
-                  <option key={location} value={location}>
-                    {location}
+                <option value="">
+                  {isLoadingCamps ? "Loading camps..." : "Select a camp"}
+                </option>
+                {camps.map((camp) => (
+                  <option key={camp.id} value={camp.id}>
+                    {camp.name}
                   </option>
                 ))}
               </select>
+
+              <div className="mt-6 flex flex-wrap justify-end gap-3">
+                <button
+                  type="submit"
+                  disabled={isSearching}
+                  className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSearching ? "Searching..." : "Apply"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  disabled={isSearching}
+                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Clear
+                </button>
+              </div>
             </div>
-
-            <div>
-              <label
-                htmlFor="search-vulnerability-level"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Vulnerability Level
-              </label>
-              <select
-                id="search-vulnerability-level"
-                name="vulnerabilityLevel"
-                value={formData.vulnerabilityLevel}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select a vulnerability level</option>
-                {vulnerabilityLevels.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div />
-
-            <div>
-              <label
-                htmlFor="from-date"
-                className="block text-sm font-medium text-gray-800 mb-2"
-              >
-                Assistance Date From (optional)
-              </label>
-              <input
-                id="from-date"
-                name="fromDate"
-                type="date"
-                value={formData.fromDate}
-                onChange={handleChange}
-                className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF] sm:text-sm/6"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="to-date"
-                className="block text-sm font-medium text-gray-800 mb-2"
-              >
-                Assistance Date To (optional)
-              </label>
-              <input
-                id="to-date"
-                name="toDate"
-                type="date"
-                value={formData.toDate}
-                onChange={handleChange}
-                className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF] sm:text-sm/6"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="submit"
-              className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
-            >
-              Apply
-            </button>
-            <button
-              type="button"
-              onClick={handleClear}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
-            >
-              Clear
-            </button>
           </div>
         </div>
       </form>
@@ -236,44 +202,52 @@ const GlobalSearchPage = () => {
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
             Search Results
           </h2>
-          {filteredResults.length > 0 ? (
-            <div className="overflow-x-auto rounded-md border border-dashed border-gray-300 p-6">
+
+          {isSearching ? (
+            <p className="text-sm text-gray-600">
+              Searching registered families...
+            </p>
+          ) : searchError ? (
+            <p className="text-sm text-red-600" role="alert">
+              {searchError}
+            </p>
+          ) : !hasAppliedFilters ? (
+            <>
+              <h2 className="text-lg font-medium text-gray-700 mb-2">
+                No Results
+              </h2>
+              <p className="text-gray-500">No filters are applied</p>
+            </>
+          ) : (
+            <div className="overflow-x-auto">
               <table className="min-w-full border-collapse table-auto">
                 <thead>
                   <tr className="bg-gray-100 text-left text-sm text-gray-700">
                     <th className="py-3 px-4 border">National ID</th>
                     <th className="py-3 px-4 border">Family Head Name</th>
                     <th className="py-3 px-4 border">Phone</th>
-                    <th className="py-3 px-4 border">Current Camp/Location</th>
-                    <th className="py-3 px-4 border">Vulnerability Level</th>
-                    <th className="py-3 px-4 border">Last Assistance Date</th>
+                    <th className="py-3 px-4 border">Current Camp</th>
+                    <th className="py-3 px-4 border">Last Updated</th>
                     <th className="py-3 px-4 border">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredResults.map((family) => (
-                    <tr key={family.nationalID} className="border-t">
-                      <td className="py-2 px-4 border">{family.nationalID}</td>
+                  {results.map((family) => (
+                    <tr key={family.id} className="border-t">
+                      <td className="py-2 px-4 border">{family.nationalId}</td>
                       <td className="py-2 px-4 border">
                         {family.familyHeadName}
                       </td>
                       <td className="py-2 px-4 border">{family.phoneNumber}</td>
-                      <td className="py-2 px-4 border">{family.location}</td>
                       <td className="py-2 px-4 border">
-                        <span
-                          className={
-                            vulnerabilityClasses[family.vulnerabilityLevel]
-                          }
-                        >
-                          {family.vulnerabilityLevel}
-                        </span>
+                        {family.currentCampName ?? "Unknown camp"}
                       </td>
                       <td className="py-2 px-4 border">
-                        {family.lastAssistanceDate}
+                        {formatDate(family.updatedAt)}
                       </td>
                       <td className="py-2 px-4 border">
                         <Link
-                          to={`/families/${family.nationalID}`}
+                          to={`/families/${family.nationalId}`}
                           className="text-sm text-[#0066FF] hover:text-blue-700"
                         >
                           View Profile
@@ -281,14 +255,18 @@ const GlobalSearchPage = () => {
                       </td>
                     </tr>
                   ))}
+                  {results.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="py-4 px-4 text-center text-gray-500"
+                      >
+                        No results found.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
-            </div>
-          ) : (
-            <div className="rounded-md border border-dashed border-red-300 p-6 text-center text-red-500">
-              {hasAppliedFilters
-                ? "No results found."
-                : "No filters are applied."}
             </div>
           )}
         </div>
