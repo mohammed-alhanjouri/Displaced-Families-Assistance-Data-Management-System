@@ -5,6 +5,7 @@ import LoginPage from "../pages/LoginPage";
 import GlobalSearchPage from "../pages/GlobalSearchPage";
 import FamilyProfilePage from "../pages/FamilyProfilePage";
 import ReportsPage from "../pages/ReportsPage";
+import DataEntryDashboardPage from "../pages/DataEntryDashboardPage";
 import RegisterFamilyPage from "../pages/RegisterFamilyPage";
 import LocalSearchPage from "../pages/LocalSearchPage";
 import UpdateFamilyInformation from "../pages/UpdateFamilyInformationPage";
@@ -93,6 +94,14 @@ const AppRoutes = () => {
         element={
           <RequireAuth allowedRoles={managerRoles}>
             <ReportsPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/data-entry-dashboard"
+        element={
+          <RequireAuth allowedRoles={dataEntryRoles}>
+            <DataEntryDashboardPage />
           </RequireAuth>
         }
       />
