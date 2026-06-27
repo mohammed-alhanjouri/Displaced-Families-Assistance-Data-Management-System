@@ -289,6 +289,20 @@ export const fetchFamilies = async (campId?: string) => {
   return withVulnerabilityLevels(families);
 };
 
+// Fetch family count for a specific camp, returning 0 if no families are found
+export const fetchFamilyCountByCamp = async (campId: string) => {
+  const { count, error } = await supabase
+    .from("families")
+    .select("id", { count: "exact", head: true })
+    .eq("current_camp_id", campId);
+
+  if (error) {
+    throw error;
+  }
+
+  return count ?? 0;
+};
+
 // Fetch a single family by its national ID
 export const fetchFamilyByNationalId = async (nationalId: string) => {
   const { data, error } = await supabase
