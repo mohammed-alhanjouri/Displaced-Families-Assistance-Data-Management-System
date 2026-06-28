@@ -1,7 +1,21 @@
 import { useEffect, useState } from "react";
-import { fetchDashboardStats, type DashboardStats } from "../../lib/families";
+import {
+  fetchDashboardStats,
+  type DashboardStats,
+  type DashboardStatsFilters,
+} from "../../lib/families";
 
-const StatsCards = () => {
+interface StatsCardsProps {
+  filters: DashboardStatsFilters;
+  refreshToken: number;
+  onLoadingChange?: (isLoading: boolean) => void;
+}
+
+const StatsCards = ({
+  filters,
+  refreshToken,
+  onLoadingChange,
+}: StatsCardsProps) => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -10,8 +24,12 @@ const StatsCards = () => {
     let isActive = true;
 
     const loadStats = async () => {
+      setIsLoading(true);
+      setLoadError("");
+      onLoadingChange?.(true);
+
       try {
-        const dashboardStats = await fetchDashboardStats();
+        const dashboardStats = await fetchDashboardStats(filters);
 
         if (isActive) {
           setStats(dashboardStats);
@@ -27,6 +45,7 @@ const StatsCards = () => {
       } finally {
         if (isActive) {
           setIsLoading(false);
+          onLoadingChange?.(false);
         }
       }
     };
@@ -36,7 +55,7 @@ const StatsCards = () => {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [filters, refreshToken, onLoadingChange]);
 
   const cards = [
     { title: "Total Families", value: stats?.totalFamilies ?? 0 },
