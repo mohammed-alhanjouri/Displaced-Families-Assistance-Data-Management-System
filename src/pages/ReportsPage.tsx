@@ -1,6 +1,7 @@
+import { useEffect, useState, type SubmitEvent } from "react";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import { fetchCamps, type Camp } from "../lib/camps";
 import DashboardLayout from "../layouts/DashboardLayout";
-import { useState } from "react";
 
 const reportTypes = [
   "Family Summary",
@@ -8,36 +9,56 @@ const reportTypes = [
   "Vulnerability Analysis",
 ];
 
-const locations = [
-  "Location 1",
-  "Location 2",
-  "Location 3",
-  "Location 4",
-  "Location 5",
-  "Location 6",
-  "Location 7",
-  "Location 8",
-  "Location 9",
-  "Location 10",
-];
-
 const ReportsPage = () => {
   const [showReportOutput, setShowReportOutput] = useState(false);
+  const [camps, setCamps] = useState<Camp[]>([]);
+  const [isLoadingCamps, setIsLoadingCamps] = useState(true);
+  const [campLoadError, setCampLoadError] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadCamps = async () => {
+      try {
+        const campOptions = await fetchCamps();
+
+        if (isActive) {
+          setCamps(campOptions);
+        }
+      } catch (error) {
+        if (isActive) {
+          setCampLoadError(
+            error instanceof Error ? error.message : "Unable to load camps.",
+          );
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingCamps(false);
+        }
+      }
+    };
+
+    void loadCamps();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const handleReset = () => {
     setShowReportOutput(false);
   };
 
-  const handleGenerateReport = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleGenerateReport = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
     const reportType = formData.get("reportType") as string;
-    const location = formData.get("location") as string;
+    const campId = formData.get("campId") as string;
     const fromDate = formData.get("fromDate") as string;
     const toDate = formData.get("toDate") as string;
 
-    if (reportType && location && fromDate && toDate) {
+    if (reportType && campId && fromDate && toDate) {
       setShowReportOutput(true);
     }
   };
@@ -73,23 +94,37 @@ const ReportsPage = () => {
             </select>
 
             <label
-              htmlFor="location"
+              htmlFor="report-camp"
               className="block text-sm font-medium text-gray-700"
             >
-              Camp / Location
+              Camp/Location
             </label>
-            <select
-              id="location"
-              name="location"
-              className="border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-            >
-              <option value="">Select a location</option>
-              {locations.map((location) => (
-                <option key={location} value={location}>
-                  {location}
+            <div className="mb-4">
+              <select
+                id="report-camp"
+                name="campId"
+                disabled={isLoadingCamps || Boolean(campLoadError)}
+                aria-invalid={Boolean(campLoadError)}
+                aria-describedby={
+                  campLoadError ? "report-camp-error" : undefined
+                }
+                className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+              >
+                <option value="">
+                  {isLoadingCamps ? "Loading camps..." : "Select a camp"}
                 </option>
-              ))}
-            </select>
+                {camps.map((camp) => (
+                  <option key={camp.id} value={camp.id}>
+                    {camp.name}
+                  </option>
+                ))}
+              </select>
+              {campLoadError && (
+                <p id="report-camp-error" className="mt-1 text-sm text-red-600">
+                  {campLoadError}
+                </p>
+              )}
+            </div>
 
             <label
               htmlFor="from-date"
