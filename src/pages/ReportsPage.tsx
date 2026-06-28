@@ -76,7 +76,7 @@ const ReportsPage = () => {
               htmlFor="location"
               className="block text-sm font-medium text-gray-700"
             >
-              Location
+              Camp / Location
             </label>
             <select
               id="location"

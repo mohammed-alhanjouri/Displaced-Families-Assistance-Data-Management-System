@@ -155,7 +155,7 @@ const GlobalSearchPage = () => {
                 htmlFor="search-camp"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Current Camp
+                Camp / Location
               </label>
               <select
                 id="search-camp"

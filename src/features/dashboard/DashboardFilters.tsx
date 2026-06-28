@@ -123,7 +123,7 @@ const DashboardFilter = ({
             htmlFor="search-location"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Location
+            Camp / Location
           </label>
           <select
             id="search-location"
