@@ -137,6 +137,12 @@ export type DashboardStats = {
   assistanceProvidedCount: number;
 };
 
+export type DashboardStatsFilters = {
+  campId: string;
+  fromDate: string;
+  toDate: string;
+};
+
 // Select query for fetching family data
 const familySelect =
   "id, national_id, family_head_name, phone_number, total_members, is_female_headed, female_head_reason, current_camp_id, original_residence_governorate, original_residence_city, created_at, updated_at, current_camp:camps(name)";
@@ -156,6 +162,15 @@ const getProfileDisplayName = (
   const relatedProfile = getRelatedRecord(profile);
 
   return relatedProfile?.full_name ?? relatedProfile?.email ?? null;
+};
+
+const getDateTimeStart = (date: string) => `${date}T00:00:00`;
+
+const getNextDate = (date: string) => {
+  const [year, month, day] = date.split("-").map(Number);
+  const nextDate = new Date(Date.UTC(year, month - 1, day + 1));
+
+  return nextDate.toISOString().slice(0, 10);
 };
 
 // Convert a FamilyRow from the database into a FamilyRecord used in the application
@@ -361,42 +376,124 @@ export const updateFamilyByNationalId = async (
   return family;
 };
 
-export const fetchDashboardStats = async (): Promise<DashboardStats> => {
-  const { data: families, error: familiesError } = await supabase
+export const fetchDashboardStats = async (
+  filters: DashboardStatsFilters = {
+    campId: "",
+    fromDate: "",
+    toDate: "",
+  },
+): Promise<DashboardStats> => {
+  let familiesQuery = supabase
     .from("families")
     .select("id, total_members");
+
+  if (filters.campId) {
+    familiesQuery = familiesQuery.eq("current_camp_id", filters.campId);
+  }
+
+  if (filters.fromDate) {
+    familiesQuery = familiesQuery.gte(
+      "updated_at",
+      getDateTimeStart(filters.fromDate),
+    );
+  }
+
+  if (filters.toDate) {
+    familiesQuery = familiesQuery.lt(
+      "updated_at",
+      getDateTimeStart(getNextDate(filters.toDate)),
+    );
+  }
+
+  const { data: families, error: familiesError } = await familiesQuery;
 
   if (familiesError) {
     throw familiesError;
   }
 
-  const { count: assistanceCount, error: assistanceError } = await supabase
-    .from("family_assistance")
-    .select("id", { count: "exact", head: true });
+  let scopedFamilyIds: string[] | null = null;
 
-  if (assistanceError) {
-    throw assistanceError;
+  if (filters.campId) {
+    const { data: campFamilies, error: campFamiliesError } = await supabase
+      .from("families")
+      .select("id")
+      .eq("current_camp_id", filters.campId);
+
+    if (campFamiliesError) {
+      throw campFamiliesError;
+    }
+
+    scopedFamilyIds = (campFamilies ?? []).map((family) => family.id);
   }
 
-  const { data: assessments, error: assessmentsError } = await supabase
-    .from("vulnerability_assessments")
-    .select("family_id, level, created_at")
-    .order("created_at", { ascending: false });
+  let assistanceCount = 0;
 
-  if (assessmentsError) {
-    throw assessmentsError;
+  if (!scopedFamilyIds || scopedFamilyIds.length > 0) {
+    let assistanceQuery = supabase
+      .from("family_assistance")
+      .select("id", { count: "exact", head: true });
+
+    if (scopedFamilyIds) {
+      assistanceQuery = assistanceQuery.in("family_id", scopedFamilyIds);
+    }
+
+    if (filters.fromDate) {
+      assistanceQuery = assistanceQuery.gte("assistance_date", filters.fromDate);
+    }
+
+    if (filters.toDate) {
+      assistanceQuery = assistanceQuery.lte("assistance_date", filters.toDate);
+    }
+
+    const { count, error: assistanceError } = await assistanceQuery;
+
+    if (assistanceError) {
+      throw assistanceError;
+    }
+
+    assistanceCount = count ?? 0;
+  }
+
+  let assessments: FamilyVulnerabilityLevelRow[] = [];
+
+  if (!scopedFamilyIds || scopedFamilyIds.length > 0) {
+    let assessmentsQuery = supabase
+      .from("vulnerability_assessments")
+      .select("family_id, level, created_at")
+      .order("created_at", { ascending: false });
+
+    if (scopedFamilyIds) {
+      assessmentsQuery = assessmentsQuery.in("family_id", scopedFamilyIds);
+    }
+
+    if (filters.fromDate) {
+      assessmentsQuery = assessmentsQuery.gte(
+        "created_at",
+        getDateTimeStart(filters.fromDate),
+      );
+    }
+
+    if (filters.toDate) {
+      assessmentsQuery = assessmentsQuery.lt(
+        "created_at",
+        getDateTimeStart(getNextDate(filters.toDate)),
+      );
+    }
+
+    const { data, error: assessmentsError } = await assessmentsQuery;
+
+    if (assessmentsError) {
+      throw assessmentsError;
+    }
+
+    assessments = (data ?? []) as FamilyVulnerabilityLevelRow[];
   }
 
   const latestAssessmentByFamily = new Map<string, VulnerabilityLevel>();
 
-  for (const assessment of assessments ?? []) {
-    const row = assessment as {
-      family_id: string;
-      level: VulnerabilityLevel;
-    };
-
-    if (!latestAssessmentByFamily.has(row.family_id)) {
-      latestAssessmentByFamily.set(row.family_id, row.level);
+  for (const assessment of assessments) {
+    if (!latestAssessmentByFamily.has(assessment.family_id)) {
+      latestAssessmentByFamily.set(assessment.family_id, assessment.level);
     }
   }
 
