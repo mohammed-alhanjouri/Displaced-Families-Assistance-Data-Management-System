@@ -1,14 +1,60 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type SubmitEvent } from "react";
+import { fetchCamps, type Camp } from "../../lib/camps";
+import type { DashboardStatsFilters } from "../../lib/families";
 
-const DashboardFilter = () => {
-  const locations = ["Location 1", "Location 2", "Location 3"];
-  const [formData, setFormData] = useState({
-    search: "",
-    location: "",
-    vulnerabilityLevel: "",
-    fromDate: "",
-    toDate: "",
+const emptyFilters: DashboardStatsFilters = {
+  campId: "",
+  fromDate: "",
+  toDate: "",
+};
+
+interface DashboardFilterProps {
+  isApplying: boolean;
+  onApply: (filters: DashboardStatsFilters) => void;
+  onClear: () => void;
+}
+
+const DashboardFilter = ({
+  isApplying,
+  onApply,
+  onClear,
+}: DashboardFilterProps) => {
+  const [formData, setFormData] = useState<DashboardStatsFilters>({
+    ...emptyFilters,
   });
+  const [camps, setCamps] = useState<Camp[]>([]);
+  const [isLoadingCamps, setIsLoadingCamps] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadCamps = async () => {
+      try {
+        const campOptions = await fetchCamps();
+
+        if (isActive) {
+          setCamps(campOptions);
+        }
+      } catch (error) {
+        if (isActive) {
+          setLoadError(
+            error instanceof Error ? error.message : "Unable to load camps.",
+          );
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingCamps(false);
+        }
+      }
+    };
+
+    void loadCamps();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -17,96 +63,110 @@ const DashboardFilter = () => {
     setFormData((current) => ({ ...current, [name]: value }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
+    onApply(formData);
   };
 
   const handleClear = () => {
-    setFormData({
-      search: "",
-      location: "",
-      vulnerabilityLevel: "",
-      fromDate: "",
-      toDate: "",
-    });
+    const nextFilters = {
+      ...emptyFilters,
+    };
+
+    setFormData(nextFilters);
+    onClear();
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid gap-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm md:grid-cols-[1fr_1fr_auto] md:items-end"
+      aria-busy={isApplying}
+      className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm"
     >
-      <div>
-        <label
-          htmlFor="from-date"
-          className="block text-sm font-medium text-gray-800 mb-2"
-        >
-          Date From (optional)
-        </label>
-        <input
-          id="from-date"
-          name="fromDate"
-          type="date"
-          value={formData.fromDate}
-          onChange={handleChange}
-          className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF] sm:text-sm/6"
-        />
-      </div>
+      <div className="grid gap-4 md:grid-cols-[minmax(0,11rem)_minmax(0,11rem)_minmax(0,1fr)] md:items-start">
+        <div>
+          <label
+            htmlFor="from-date"
+            className="block text-sm font-medium text-gray-800 mb-2"
+          >
+            Date From (optional)
+          </label>
+          <input
+            id="from-date"
+            name="fromDate"
+            type="date"
+            value={formData.fromDate}
+            onChange={handleChange}
+            className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF] sm:text-sm/6"
+          />
+        </div>
 
-      <div>
-        <label
-          htmlFor="to-date"
-          className="block text-sm font-medium text-gray-800 mb-2"
-        >
-          Date To (optional)
-        </label>
-        <input
-          id="to-date"
-          name="toDate"
-          type="date"
-          value={formData.toDate}
-          onChange={handleChange}
-          className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF] sm:text-sm/6"
-        />
-      </div>
+        <div>
+          <label
+            htmlFor="to-date"
+            className="block text-sm font-medium text-gray-800 mb-2"
+          >
+            Date To (optional)
+          </label>
+          <input
+            id="to-date"
+            name="toDate"
+            type="date"
+            value={formData.toDate}
+            onChange={handleChange}
+            className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF] sm:text-sm/6"
+          />
+        </div>
 
-      <div>
-        <label
-          htmlFor="search-location"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Location
-        </label>
-        <select
-          id="search-location"
-          name="location"
-          value={formData.location}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Select a location</option>
-          {locations.map((location) => (
-            <option key={location} value={location}>
-              {location}
+        <div>
+          <label
+            htmlFor="search-location"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Location
+          </label>
+          <select
+            id="search-location"
+            name="campId"
+            value={formData.campId}
+            onChange={handleChange}
+            disabled={isLoadingCamps}
+            className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+          >
+            <option value="">
+              {isLoadingCamps ? "Loading locations..." : "Select a location"}
             </option>
-          ))}
-        </select>
-      </div>
+            {camps.map((camp) => (
+              <option key={camp.id} value={camp.id}>
+                {camp.name}
+              </option>
+            ))}
+          </select>
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="submit"
-          className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
-        >
-          Apply
-        </button>
-        <button
-          type="button"
-          onClick={handleClear}
-          className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
-        >
-          Clear
-        </button>
+          {loadError && (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {loadError}
+            </p>
+          )}
+
+          <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <button
+              type="submit"
+              disabled={isApplying}
+              className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isApplying ? "Applying..." : "Apply"}
+            </button>
+            <button
+              type="button"
+              onClick={handleClear}
+              disabled={isApplying}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
       </div>
     </form>
   );
