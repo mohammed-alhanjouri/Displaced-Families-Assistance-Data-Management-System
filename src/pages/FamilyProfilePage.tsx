@@ -4,6 +4,7 @@ import VulnerabilityLevelBadge from "../components/families/VulnerabilityLevelBa
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import { useAuth } from "../features/auth/useAuth";
 import {
+  calculateInitialVulnerability,
   fetchAssistanceRecords,
   fetchFamilyByNationalId,
   fetchLatestVulnerabilityAssessment,
@@ -214,6 +215,13 @@ const FamilyProfilePage = () => {
     );
   }
 
+  const displayedVulnerability =
+    latestAssessment ??
+    calculateInitialVulnerability({
+      totalMembers: family.totalMembers,
+      isFemaleHeaded: family.isFemaleHeaded,
+    });
+
   return (
     <Layout>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -335,14 +343,14 @@ const FamilyProfilePage = () => {
               <span className="font-semibold text-gray-800">
                 Vulnerability Score:
               </span>{" "}
-              {latestAssessment?.score ?? "N/A"}
+              {displayedVulnerability.score}
             </p>
             <p>
               <span className="font-semibold text-gray-800">
                 Vulnerability Level:
               </span>{" "}
               <VulnerabilityLevelBadge
-                level={latestAssessment?.level ?? null}
+                level={displayedVulnerability.level}
                 className="ml-2"
               />
             </p>
