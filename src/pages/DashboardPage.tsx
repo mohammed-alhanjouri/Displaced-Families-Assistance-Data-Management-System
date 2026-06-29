@@ -1,10 +1,12 @@
 import { useCallback, useState } from "react";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import { useAuth } from "../features/auth/useAuth";
 import ChartsCard from "../features/dashboard/ChartsCards";
 import DashboardFilter from "../features/dashboard/DashboardFilters";
 import StatsCards from "../features/dashboard/StatsCards";
 import DashboardLayout from "../layouts/DashboardLayout";
 import type { DashboardStatsFilters } from "../lib/families";
+import SystemAdminDashboardPage from "./SystemAdminDashboardPage";
 
 const emptyDashboardFilters: DashboardStatsFilters = {
   campId: "",
@@ -12,7 +14,7 @@ const emptyDashboardFilters: DashboardStatsFilters = {
   toDate: "",
 };
 
-const DashboardPage = () => {
+const OrganizationDashboardPage = () => {
   const [filters, setFilters] = useState<DashboardStatsFilters>({
     ...emptyDashboardFilters,
   });
@@ -75,6 +77,16 @@ const DashboardPage = () => {
       </section>
     </DashboardLayout>
   );
+};
+
+const DashboardPage = () => {
+  const { user } = useAuth();
+
+  if (user?.role === "system_administrator") {
+    return <SystemAdminDashboardPage />;
+  }
+
+  return <OrganizationDashboardPage />;
 };
 
 export default DashboardPage;
