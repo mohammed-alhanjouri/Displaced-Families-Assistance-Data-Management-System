@@ -13,6 +13,8 @@ import VulnerabilityAssessment from "../pages/VulnerabilityAssessment";
 import AddAssistancePage from "../pages/AddAssistancePage";
 import LogoutPage from "../pages/LogoutPage";
 import UpdatePasswordPage from "../pages/UpdatePasswordPage";
+import UserManagementPage from "../pages/UserManagementPage";
+import RolesPermissionsPage from "../pages/RolesPermissionsPage";
 // Add auth role helpers and useAuth hook imports
 import { getRoleHomePath, type UserRole } from "../features/auth/auth";
 import { useAuth } from "../features/auth/useAuth";
@@ -22,6 +24,7 @@ const managerRoles: UserRole[] = [
   "system_administrator",
   "organization_manager",
 ];
+const systemAdminRoles: UserRole[] = ["system_administrator"];
 const dataEntryRoles: UserRole[] = ["data_entry_staff"];
 const allRoles: UserRole[] = [...managerRoles, ...dataEntryRoles];
 
@@ -94,6 +97,22 @@ const AppRoutes = () => {
         element={
           <RequireAuth allowedRoles={managerRoles}>
             <ReportsPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/user-management"
+        element={
+          <RequireAuth allowedRoles={systemAdminRoles}>
+            <UserManagementPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/roles-permissions"
+        element={
+          <RequireAuth allowedRoles={systemAdminRoles}>
+            <RolesPermissionsPage />
           </RequireAuth>
         }
       />
