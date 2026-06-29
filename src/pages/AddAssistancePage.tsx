@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type SubmitEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import VulnerabilityLevelBadge from "../components/families/VulnerabilityLevelBadge";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import {
   createAssistanceRecord,
@@ -57,13 +58,6 @@ const validate = (values: AssistanceFormValues) => {
   }
 
   return errors;
-};
-
-const vulnerabilityClasses: Record<string, string> = {
-  Low: "rounded-lg bg-green-100 px-3 py-1 text-sm font-medium text-green-700",
-  Medium:
-    "rounded-lg bg-orange-100 px-3 py-1 text-sm font-medium text-orange-700",
-  High: "rounded-lg bg-red-100 px-3 py-1 text-sm font-medium text-red-700",
 };
 
 const AddAssistancePage = () => {
@@ -277,13 +271,10 @@ const AddAssistancePage = () => {
             <span className="font-semibold text-gray-800">
               Vulnerability Level:
             </span>{" "}
-            {latestAssessment ? (
-              <span className={vulnerabilityClasses[latestAssessment.level]}>
-                {latestAssessment.level}
-              </span>
-            ) : (
-              "Not assessed"
-            )}
+            <VulnerabilityLevelBadge
+              level={latestAssessment?.level ?? null}
+              variant="compact"
+            />
           </p>
           <p>
             <span className="font-semibold text-gray-800">Current Camp:</span>{" "}

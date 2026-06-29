@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
+import VulnerabilityLevelBadge from "../components/families/VulnerabilityLevelBadge";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import { useAuth } from "../features/auth/useAuth";
 import {
@@ -24,16 +25,6 @@ const formatDate = (value: string) =>
   new Intl.DateTimeFormat("en-CA", { dateStyle: "medium" }).format(
     new Date(`${value}T00:00:00`),
   );
-
-const vulnerabilityClasses: Record<string, string> = {
-  Low: "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-green-100 text-green-700",
-  Medium:
-    "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-orange-100 text-orange-700",
-  High:
-    "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-red-100 text-red-700",
-  "Not assessed":
-    "ml-2 rounded-lg px-4 py-2 text-sm font-medium bg-gray-100 text-gray-600",
-};
 
 const getOriginalResidence = (family: FamilyRecord) =>
   [family.originalResidenceCity, family.originalResidenceGovernorate]
@@ -350,15 +341,10 @@ const FamilyProfilePage = () => {
               <span className="font-semibold text-gray-800">
                 Vulnerability Level:
               </span>{" "}
-              <span
-                className={
-                  vulnerabilityClasses[
-                    latestAssessment?.level ?? "Not assessed"
-                  ]
-                }
-              >
-                {latestAssessment?.level ?? "Not assessed"}
-              </span>
+              <VulnerabilityLevelBadge
+                level={latestAssessment?.level ?? null}
+                className="ml-2"
+              />
             </p>
           </div>
         </section>
