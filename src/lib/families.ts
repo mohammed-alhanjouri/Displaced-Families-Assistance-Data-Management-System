@@ -35,7 +35,7 @@ export type FamilyRecord = {
   femaleHeadReason: string | null;
   currentCampId: string;
   currentCampName: string | null;
-  vulnerabilityLevel: VulnerabilityLevel | null;
+  vulnerabilityLevel: VulnerabilityLevel;
   lastAssistanceDate: string | null;
   originalResidenceGovernorate: string;
   originalResidenceCity: string;
@@ -162,6 +162,13 @@ export type DashboardStatsFilters = {
   toDate: string;
 };
 
+// Type representing a row of family data for dashboard statistics
+type DashboardStatsFamilyRow = {
+  id: string;
+  total_members: number;
+  is_female_headed: boolean;
+};
+
 // Select query for fetching family data
 const familySelect =
   "id, national_id, family_head_name, phone_number, total_members, is_female_headed, female_head_reason, current_camp_id, original_residence_governorate, original_residence_city, created_at, updated_at, current_camp:camps(name)";
@@ -192,6 +199,44 @@ const getNextDate = (date: string) => {
   return nextDate.toISOString().slice(0, 10);
 };
 
+// Calculate the vulnerability score and level based on family characteristics
+export const calculateVulnerability = ({
+  totalMembers,
+  isFemaleHeaded,
+  hasElderlyMember,
+  hasDisability,
+}: {
+  totalMembers: number;
+  isFemaleHeaded: boolean;
+  hasElderlyMember: boolean;
+  hasDisability: boolean;
+}) => {
+  const score =
+    (hasElderlyMember ? 3 : 0) +
+    (hasDisability ? 3 : 0) +
+    (totalMembers > 5 ? 2 : 0) +
+    (isFemaleHeaded ? 2 : 0);
+  const level: VulnerabilityLevel =
+    score >= 8 ? "High" : score >= 6 ? "Medium" : "Low";
+
+  return { score, level };
+};
+
+// Calculate the initial vulnerability level for a family based on main characteristics
+export const calculateInitialVulnerability = ({
+  totalMembers,
+  isFemaleHeaded,
+}: {
+  totalMembers: number;
+  isFemaleHeaded: boolean;
+}) =>
+  calculateVulnerability({
+    totalMembers,
+    isFemaleHeaded,
+    hasElderlyMember: false,
+    hasDisability: false,
+  });
+
 // Convert a FamilyRow from the database into a FamilyRecord used in the application
 const toFamilyRecord = (row: FamilyRow): FamilyRecord => ({
   id: row.id,
@@ -203,7 +248,10 @@ const toFamilyRecord = (row: FamilyRow): FamilyRecord => ({
   femaleHeadReason: row.female_head_reason,
   currentCampId: row.current_camp_id,
   currentCampName: getRelatedRecord(row.current_camp)?.name ?? null,
-  vulnerabilityLevel: null,
+  vulnerabilityLevel: calculateInitialVulnerability({
+    totalMembers: row.total_members,
+    isFemaleHeaded: row.is_female_headed,
+  }).level,
   lastAssistanceDate: null,
   originalResidenceGovernorate: row.original_residence_governorate,
   originalResidenceCity: row.original_residence_city,
@@ -244,7 +292,8 @@ const withVulnerabilityLevels = async (families: FamilyRecord[]) => {
 
   return families.map((family) => ({
     ...family,
-    vulnerabilityLevel: latestLevelByFamily.get(family.id) ?? null,
+    vulnerabilityLevel:
+      latestLevelByFamily.get(family.id) ?? family.vulnerabilityLevel,
   }));
 };
 
@@ -323,28 +372,6 @@ const toVulnerabilityAssessmentRecord = (
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });
-
-export const calculateVulnerability = ({
-  totalMembers,
-  isFemaleHeaded,
-  hasElderlyMember,
-  hasDisability,
-}: {
-  totalMembers: number;
-  isFemaleHeaded: boolean;
-  hasElderlyMember: boolean;
-  hasDisability: boolean;
-}) => {
-  const score =
-    (hasElderlyMember ? 3 : 0) +
-    (hasDisability ? 3 : 0) +
-    (totalMembers > 5 ? 2 : 0) +
-    (isFemaleHeaded ? 2 : 0);
-  const level: VulnerabilityLevel =
-    score >= 8 ? "High" : score >= 6 ? "Medium" : "Low";
-
-  return { score, level };
-};
 
 // Fetch families from the database, optionally filtered by camp ID
 export const fetchFamilies = async (campId?: string) => {
@@ -449,7 +476,7 @@ export const fetchDashboardStats = async (
 ): Promise<DashboardStats> => {
   let familiesQuery = supabase
     .from("families")
-    .select("id, total_members");
+    .select("id, total_members, is_female_headed");
 
   if (filters.campId) {
     familiesQuery = familiesQuery.eq("current_camp_id", filters.campId);
@@ -567,9 +594,18 @@ export const fetchDashboardStats = async (
       (sum, family) => sum + Number(family.total_members ?? 0),
       0,
     ),
-    highVulnerabilityFamilies: Array.from(
-      latestAssessmentByFamily.values(),
-    ).filter((level) => level === "High").length,
+    highVulnerabilityFamilies: (
+      ((families ?? []) as DashboardStatsFamilyRow[])
+    ).filter((family) => {
+      const level =
+        latestAssessmentByFamily.get(family.id) ??
+        calculateInitialVulnerability({
+          totalMembers: Number(family.total_members ?? 0),
+          isFemaleHeaded: Boolean(family.is_female_headed),
+        }).level;
+
+      return level === "High";
+    }).length,
     assistanceProvidedCount: assistanceCount ?? 0,
   };
 };
