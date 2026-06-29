@@ -44,9 +44,9 @@ const roleAliases: Record<string, UserRole> = {
 
 // Define a mapping of user roles to their display labels
 const roleLabels: Record<UserRole, string> = {
-  system_administrator: "System Admin",
+  system_administrator: "System Administrator",
   organization_manager: "Organization Manager",
-  data_entry_staff: "Data Entry",
+  data_entry_staff: "Data Entry Staff",
 };
 
 // Define a mapping of user roles to their home pages
