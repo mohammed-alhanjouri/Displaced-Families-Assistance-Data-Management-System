@@ -1,6 +1,7 @@
 import { useEffect, useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchCamps, type Camp } from "../lib/camps";
+import { createVulnerabilityAssessment } from "../lib/families";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../features/auth/useAuth";
 import FamilyIdentificationCard from "../features/register-family/FamilyIdentificationCard";
@@ -174,16 +175,16 @@ const RegisterFamilyPage = () => {
 
     try {
       const {
-        data: { user },
+        data: { user: currentUser },
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError || !user) {
+      if (userError || !currentUser) {
         throw new Error("Your session has expired. Please sign in again.");
       }
 
       // Insert the new family registration into the "families" table, and handle any errors that occur during insertion
-      const { error } = await supabase
+      const { data: family, error } = await supabase
         .from("families")
         .insert({
           national_id: values.nationalID,
@@ -222,6 +223,22 @@ const RegisterFamilyPage = () => {
           "Unable to save the family registration. Please try again.",
         );
       }
+
+      if (!family) {
+        throw new Error(
+          "Family registration was saved without a returned family ID. Please refresh and verify the record.",
+        );
+      }
+
+      await createVulnerabilityAssessment({
+        familyId: family.id,
+        totalMembers: Number(values.totalMembers),
+        isFemaleHeaded: values.isFemaleHeaded,
+        hasElderlyMember: false,
+        elderlyMembersCount: 0,
+        hasDisability: false,
+        disabilitiesCount: 0,
+      });
 
       // Reset the form to its initial state and display a success message after successful registration
       setValues(createInitialValues());
