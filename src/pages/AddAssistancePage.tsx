@@ -272,7 +272,7 @@ const AddAssistancePage = () => {
               Vulnerability Level:
             </span>{" "}
             <VulnerabilityLevelBadge
-              level={latestAssessment?.level ?? null}
+              level={latestAssessment?.level ?? family.vulnerabilityLevel}
               variant="compact"
             />
           </p>
