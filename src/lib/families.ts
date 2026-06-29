@@ -1,8 +1,10 @@
 import { supabase } from "./supabase";
 import type { FamilyRegistrationValues } from "../features/register-family/formTypes";
 
+// Type representing the vulnerability level of a family
 export type VulnerabilityLevel = "Low" | "Medium" | "High";
 
+// Type representing a related record in the database
 type RelatedRecord<T> = T | T[] | null;
 
 // Type representing the structure of a family row in the database
@@ -34,18 +36,28 @@ export type FamilyRecord = {
   currentCampId: string;
   currentCampName: string | null;
   vulnerabilityLevel: VulnerabilityLevel | null;
+  lastAssistanceDate: string | null;
   originalResidenceGovernorate: string;
   originalResidenceCity: string;
   createdAt: string;
   updatedAt: string;
 };
 
+// Type representing the partial structure of a last vulnerability assessment record for a family in the database
 type FamilyVulnerabilityLevelRow = {
   family_id: string;
   level: VulnerabilityLevel;
   created_at: string;
 };
 
+// Type representing the partial structure of a last assistance record for a family in the database
+type FamilyLastAssistanceRow = {
+  family_id: string;
+  assistance_date: string;
+  created_at: string;
+};
+
+// Type representing the full structure of an assistance record in the database
 type AssistanceRow = {
   id: string;
   family_id: string;
@@ -62,6 +74,7 @@ type AssistanceRow = {
   }>;
 };
 
+// Type representing the full structure of an assistance record used in the application
 export type AssistanceRecord = {
   id: string;
   familyId: string;
@@ -75,6 +88,7 @@ export type AssistanceRecord = {
   updatedAt: string;
 };
 
+// Input type for creating a new assistance record
 export type AssistanceFormValues = {
   familyId: string;
   assistanceType: string;
@@ -83,6 +97,7 @@ export type AssistanceFormValues = {
   notes: string;
 };
 
+// Type representing the full structure of a vulnerability assessment record in the database
 type VulnerabilityAssessmentRow = {
   id: string;
   family_id: string;
@@ -103,6 +118,7 @@ type VulnerabilityAssessmentRow = {
   }>;
 };
 
+// Type representing the full structure of a vulnerability assessment record used in the application
 export type VulnerabilityAssessmentRecord = {
   id: string;
   familyId: string;
@@ -120,6 +136,7 @@ export type VulnerabilityAssessmentRecord = {
   updatedAt: string;
 };
 
+// Input type for creating a new vulnerability assessment record
 export type VulnerabilityAssessmentValues = {
   familyId: string;
   hasElderlyMember: boolean;
@@ -130,6 +147,7 @@ export type VulnerabilityAssessmentValues = {
   isFemaleHeaded: boolean;
 };
 
+// Type representing the dashboard statistics
 export type DashboardStats = {
   totalFamilies: number;
   totalPersons: number;
@@ -137,6 +155,7 @@ export type DashboardStats = {
   assistanceProvidedCount: number;
 };
 
+// Type representing the filters for dashboard statistics
 export type DashboardStatsFilters = {
   campId: string;
   fromDate: string;
@@ -185,6 +204,7 @@ const toFamilyRecord = (row: FamilyRow): FamilyRecord => ({
   currentCampId: row.current_camp_id,
   currentCampName: getRelatedRecord(row.current_camp)?.name ?? null,
   vulnerabilityLevel: null,
+  lastAssistanceDate: null,
   originalResidenceGovernorate: row.original_residence_governorate,
   originalResidenceCity: row.original_residence_city,
   createdAt: row.created_at,
@@ -225,6 +245,50 @@ const withVulnerabilityLevels = async (families: FamilyRecord[]) => {
   return families.map((family) => ({
     ...family,
     vulnerabilityLevel: latestLevelByFamily.get(family.id) ?? null,
+  }));
+};
+
+// Fetch the latest assistance dates for a list of family IDs, returning a map of family ID to the latest assistance date
+const fetchLatestAssistanceDates = async (familyIds: string[]) => {
+  if (familyIds.length === 0) {
+    return new Map<string, string>();
+  }
+
+  const { data, error } = await supabase
+    .from("family_assistance")
+    .select("family_id, assistance_date, created_at")
+    .in("family_id", familyIds)
+    .order("assistance_date", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const latestAssistanceDateByFamily = new Map<string, string>();
+
+  for (const assistance of (data ?? []) as FamilyLastAssistanceRow[]) {
+    if (!latestAssistanceDateByFamily.has(assistance.family_id)) {
+      latestAssistanceDateByFamily.set(
+        assistance.family_id,
+        assistance.assistance_date,
+      );
+    }
+  }
+
+  return latestAssistanceDateByFamily;
+};
+
+const withFamilySummaries = async (families: FamilyRecord[]) => {
+  const [familiesWithVulnerabilityLevels, latestAssistanceDateByFamily] =
+    await Promise.all([
+      withVulnerabilityLevels(families),
+      fetchLatestAssistanceDates(families.map((family) => family.id)),
+    ]);
+
+  return familiesWithVulnerabilityLevels.map((family) => ({
+    ...family,
+    lastAssistanceDate: latestAssistanceDateByFamily.get(family.id) ?? null,
   }));
 };
 
@@ -301,7 +365,7 @@ export const fetchFamilies = async (campId?: string) => {
 
   const families = ((data ?? []) as FamilyRow[]).map(toFamilyRecord);
 
-  return withVulnerabilityLevels(families);
+  return withFamilySummaries(families);
 };
 
 // Fetch family count for a specific camp, returning 0 if no families are found
