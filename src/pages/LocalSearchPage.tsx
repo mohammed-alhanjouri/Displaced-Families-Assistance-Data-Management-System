@@ -1,5 +1,7 @@
 import { useState, type ChangeEvent, type SubmitEvent } from "react";
 import { Link } from "react-router-dom";
+import VulnerabilityLevelBadge from "../components/families/VulnerabilityLevelBadge";
+import VulnerabilityLevelSelect from "../components/families/VulnerabilityLevelSelect";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import { useAuth } from "../features/auth/useAuth";
 import {
@@ -14,27 +16,6 @@ const formatDate = (value: string) =>
   new Intl.DateTimeFormat("en-CA", { dateStyle: "medium" }).format(
     new Date(value),
   );
-
-const vulnerabilityLevels: VulnerabilityLevel[] = ["Low", "Medium", "High"];
-
-const vulnerabilityClasses: Record<
-  VulnerabilityLevel | "Not assessed",
-  string
-> = {
-  Low: "rounded-lg px-4 py-2 text-sm font-medium bg-green-100 text-green-700",
-  Medium:
-    "rounded-lg px-4 py-2 text-sm font-medium bg-orange-100 text-orange-700",
-  High: "rounded-lg px-4 py-2 text-sm font-medium bg-red-100 text-red-700",
-  "Not assessed":
-    "rounded-lg px-4 py-2 text-sm font-medium bg-gray-100 text-gray-600",
-};
-
-const getVulnerabilityLabel = (
-  level: VulnerabilityLevel | null,
-): VulnerabilityLevel | "Not assessed" => level ?? "Not assessed";
-
-const getVulnerabilityClass = (level: VulnerabilityLevel | null) =>
-  vulnerabilityClasses[getVulnerabilityLabel(level)];
 
 const LocalSearchPage = () => {
   const { user } = useAuth();
@@ -146,20 +127,12 @@ const LocalSearchPage = () => {
               >
                 Vulnerability Level
               </label>
-              <select
+              <VulnerabilityLevelSelect
                 id="search-vulnerability-level"
                 name="vulnerabilityLevel"
                 value={vulnerabilityLevel}
                 onChange={handleVulnerabilityLevelChange}
-                className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select a vulnerability level</option>
-                {vulnerabilityLevels.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
+              />
 
               <div className="mt-6 flex flex-wrap justify-end gap-3">
                 <button
@@ -226,13 +199,9 @@ const LocalSearchPage = () => {
                       </td>
                       <td className="py-2 px-4 border">{family.phoneNumber}</td>
                       <td className="py-2 px-4 border">
-                        <span
-                          className={getVulnerabilityClass(
-                            family.vulnerabilityLevel,
-                          )}
-                        >
-                          {getVulnerabilityLabel(family.vulnerabilityLevel)}
-                        </span>
+                        <VulnerabilityLevelBadge
+                          level={family.vulnerabilityLevel}
+                        />
                       </td>
                       <td className="py-2 px-4 border">
                         {formatDate(family.updatedAt)}

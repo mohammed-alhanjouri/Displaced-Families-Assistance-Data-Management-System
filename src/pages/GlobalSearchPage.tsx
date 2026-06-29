@@ -1,17 +1,27 @@
 import { useEffect, useState, type ChangeEvent, type SubmitEvent } from "react";
 import { Link } from "react-router-dom";
+import VulnerabilityLevelBadge from "../components/families/VulnerabilityLevelBadge";
+import VulnerabilityLevelSelect from "../components/families/VulnerabilityLevelSelect";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import { fetchCamps, type Camp } from "../lib/camps";
 import {
   fetchFamilies,
   filterFamilies,
   type FamilyRecord,
+  type VulnerabilityLevel,
 } from "../lib/families";
 import DashboardLayout from "../layouts/DashboardLayout";
 
-const emptyFilters = {
+type SearchFilters = {
+  search: string;
+  campId: string;
+  vulnerabilityLevel: VulnerabilityLevel | "";
+};
+
+const emptyFilters: SearchFilters = {
   search: "",
   campId: "",
+  vulnerabilityLevel: "",
 };
 
 const formatDate = (value: string) =>
@@ -71,7 +81,8 @@ const GlobalSearchPage = () => {
     const nextAppliedFilters = { ...formData };
     const hasFilters =
       nextAppliedFilters.search.trim() !== "" ||
-      nextAppliedFilters.campId !== "";
+      nextAppliedFilters.campId !== "" ||
+      nextAppliedFilters.vulnerabilityLevel !== "";
 
     setAppliedFilters(nextAppliedFilters);
     setHasSubmittedSearch(true);
@@ -86,7 +97,11 @@ const GlobalSearchPage = () => {
 
     try {
       const families = await fetchFamilies();
-      const textMatches = filterFamilies(families, nextAppliedFilters.search);
+      const textMatches = filterFamilies(
+        families,
+        nextAppliedFilters.search,
+        nextAppliedFilters.vulnerabilityLevel,
+      );
       setResults(
         nextAppliedFilters.campId
           ? textMatches.filter(
@@ -115,7 +130,9 @@ const GlobalSearchPage = () => {
   };
 
   const hasAppliedFilters =
-    appliedFilters.search.trim() !== "" || appliedFilters.campId !== "";
+    appliedFilters.search.trim() !== "" ||
+    appliedFilters.campId !== "" ||
+    appliedFilters.vulnerabilityLevel !== "";
 
   return (
     <DashboardLayout>
@@ -131,7 +148,7 @@ const GlobalSearchPage = () => {
 
       <form onSubmit={handleSubmit}>
         <div className="bg-white p-6 rounded-lg shadow-md mt-6 space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-3">
             <div>
               <label
                 htmlFor="search"
@@ -174,6 +191,21 @@ const GlobalSearchPage = () => {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="search-vulnerability-level"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Vulnerability Level
+              </label>
+              <VulnerabilityLevelSelect
+                id="search-vulnerability-level"
+                name="vulnerabilityLevel"
+                value={formData.vulnerabilityLevel}
+                onChange={handleChange}
+              />
 
               <div className="mt-6 flex flex-wrap justify-end gap-3">
                 <button
@@ -227,7 +259,8 @@ const GlobalSearchPage = () => {
                     <th className="py-3 px-4 border">Family Head Name</th>
                     <th className="py-3 px-4 border">Phone</th>
                     <th className="py-3 px-4 border">Current Camp</th>
-                    <th className="py-3 px-4 border">Last Updated</th>
+                    <th className="py-3 px-4 border">Vulnerability Level</th>
+                    <th className="py-3 px-4 border">Last Assistance</th>
                     <th className="py-3 px-4 border">Actions</th>
                   </tr>
                 </thead>
@@ -243,7 +276,14 @@ const GlobalSearchPage = () => {
                         {family.currentCampName ?? "Unknown camp"}
                       </td>
                       <td className="py-2 px-4 border">
-                        {formatDate(family.updatedAt)}
+                        <VulnerabilityLevelBadge
+                          level={family.vulnerabilityLevel}
+                        />
+                      </td>
+                      <td className="py-2 px-4 border">
+                        {family.lastAssistanceDate
+                          ? formatDate(family.lastAssistanceDate)
+                          : "No assistance recorded"}
                       </td>
                       <td className="py-2 px-4 border">
                         <Link
@@ -258,7 +298,7 @@ const GlobalSearchPage = () => {
                   {results.length === 0 && (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="py-4 px-4 text-center text-gray-500"
                       >
                         No results found.
