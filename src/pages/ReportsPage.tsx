@@ -1,4 +1,4 @@
-import { useEffect, useState, type SubmitEvent } from "react";
+import { useEffect, useRef, useState, type SubmitEvent } from "react";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import { fetchCamps, type Camp } from "../lib/camps";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -9,11 +9,17 @@ const reportTypes = [
   "Vulnerability Analysis",
 ];
 
+// Define a delay for simulating report generation time
+const reportGenerationDelayMs = 300;
+
 const ReportsPage = () => {
   const [showReportOutput, setShowReportOutput] = useState(false);
   const [camps, setCamps] = useState<Camp[]>([]);
   const [isLoadingCamps, setIsLoadingCamps] = useState(true);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [campLoadError, setCampLoadError] = useState("");
+  // Store a ref to track the current report generation request, allowing us to cancel outdated requests if the user resets the form or generates a new report before the previous one completes
+  const generationRequestRef = useRef(0);
 
   useEffect(() => {
     let isActive = true;
@@ -42,14 +48,19 @@ const ReportsPage = () => {
 
     return () => {
       isActive = false;
+      // Increment the generation request ref to cancel any ongoing report generation if the component unmounts
+      generationRequestRef.current += 1;
     };
   }, []);
 
   const handleReset = () => {
+    // Increment the generation request ref to cancel any ongoing report generation when the form is reset
+    generationRequestRef.current += 1;
+    setIsGeneratingReport(false);
     setShowReportOutput(false);
   };
 
-  const handleGenerateReport = (e: SubmitEvent<HTMLFormElement>) => {
+  const handleGenerateReport = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
@@ -58,8 +69,24 @@ const ReportsPage = () => {
     const fromDate = formData.get("fromDate") as string;
     const toDate = formData.get("toDate") as string;
 
-    if (reportType && campId && fromDate && toDate) {
+    if (!reportType || !campId || !fromDate || !toDate) {
+      return;
+    }
+
+    // Increment the generation request ref to track the current report generation request. This allows us to cancel outdated requests if the user resets the form or generates a new report before the previous one completes.
+    const generationRequest = generationRequestRef.current + 1;
+    generationRequestRef.current = generationRequest;
+    setIsGeneratingReport(true);
+    setShowReportOutput(false);
+
+    // Simulate report generation delay
+    await new Promise((resolve) =>
+      window.setTimeout(resolve, reportGenerationDelayMs),
+    );
+
+    if (generationRequestRef.current === generationRequest) {
       setShowReportOutput(true);
+      setIsGeneratingReport(false);
     }
   };
   return (
@@ -72,7 +99,7 @@ const ReportsPage = () => {
       </div>
       <div className="bg-white p-4 rounded-lg shadow">
         <h2 className="text-xl font-semibold mb-4">Report Configuration</h2>
-        <form onSubmit={handleGenerateReport}>
+        <form onSubmit={handleGenerateReport} aria-busy={isGeneratingReport}>
           <div className="grid grid-cols-4 gap-6">
             <label
               htmlFor="report-type"
@@ -155,15 +182,17 @@ const ReportsPage = () => {
           <div className="mt-6 flex flex-wrap justify-end gap-3">
             <button
               type="submit"
-              className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+              disabled={isGeneratingReport}
+              className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Generate Report
+              {isGeneratingReport ? "Generating..." : "Generate Report"}
             </button>
 
             <button
               type="reset"
               onClick={handleReset}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+              disabled={isGeneratingReport}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Reset
             </button>
