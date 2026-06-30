@@ -11,18 +11,21 @@ const quickActions = [
     description: "Create a new family record for your selected camp.",
     href: "/register-family",
     action: "Register Family",
+    primary: true,
   },
   {
     title: "Local Search",
     description: "Find registered families in your selected camp.",
     href: "/local-search",
     action: "Search Families",
+    primary: false,
   },
   {
     title: "Add Assistance",
     description: "Search for a family, then record the assistance provided.",
     href: "/local-search",
     action: "Add Assistance",
+    primary: false,
   },
 ];
 
@@ -95,7 +98,7 @@ const DataEntryDashboardPage = () => {
             Families in Selected Camp
           </h2>
           <p className="mt-4 text-4xl font-bold text-[#0066FF]">
-            {isLoading ? "..." : familiesCount ?? 0}
+            {isLoading ? "..." : (familiesCount ?? 0)}
           </p>
           <p className="mt-2 text-sm text-gray-500">
             {user?.assignedCampName ?? "No camp selected"}
@@ -134,7 +137,11 @@ const DataEntryDashboardPage = () => {
               </p>
               <Link
                 to={action.href}
-                className="mt-5 inline-block rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+                className={`mt-5 inline-block rounded-md px-4 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 ${
+                  action.primary
+                    ? "bg-[#0066FF] text-white hover:bg-blue-700"
+                    : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 {action.action}
               </Link>
