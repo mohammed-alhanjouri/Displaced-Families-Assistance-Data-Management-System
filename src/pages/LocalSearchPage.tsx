@@ -12,6 +12,10 @@ import {
 } from "../lib/families";
 import RegisterFamilyPageLayout from "../layouts/RegisterFamilyLayout";
 
+const pageSize = 5;
+const paginationButtonClassName =
+  "rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50";
+
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat("en-CA", { dateStyle: "medium" }).format(
     new Date(value),
@@ -28,6 +32,20 @@ const LocalSearchPage = () => {
   const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [page, setPage] = useState(1);
+
+  //  Calculate pagination details based on the current page and the number of results
+  const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+
+  const paginatedResults = results.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
@@ -238,6 +256,42 @@ const LocalSearchPage = () => {
               </table>
             </div>
           )}
+          <div className="mt-5 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={currentPage === 1}
+              className={paginationButtonClassName}
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+              (pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  onClick={() => setPage(pageNumber)}
+                  className={`rounded-md border px-3 py-2 text-sm font-medium ${
+                    pageNumber === currentPage
+                      ? "border-gray-300 bg-gray-300 text-gray-900"
+                      : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              ),
+            )}
+            <button
+              type="button"
+              onClick={() =>
+                setPage((current) => Math.min(totalPages, current + 1))
+              }
+              disabled={currentPage === totalPages}
+              className={paginationButtonClassName}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </RegisterFamilyPageLayout>
