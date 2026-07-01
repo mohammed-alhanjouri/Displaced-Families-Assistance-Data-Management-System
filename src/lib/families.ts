@@ -147,6 +147,8 @@ export type VulnerabilityAssessmentValues = {
   isFemaleHeaded: boolean;
 };
 
+type FamilyUpdateValues = Omit<FamilyRegistrationValues, "nationalID">;
+
 // Type representing the dashboard statistics
 export type DashboardStats = {
   totalFamilies: number;
@@ -435,12 +437,11 @@ export const fetchFamilyByNationalId = async (nationalId: string) => {
 // Update a family's information in the database based on their existing national ID
 export const updateFamilyByNationalId = async (
   existingNationalId: string,
-  values: FamilyRegistrationValues,
+  values: FamilyUpdateValues,
 ) => {
   const { data, error } = await supabase
     .from("families")
     .update({
-      national_id: values.nationalID,
       family_head_name: values.familyHeadName.trim(),
       phone_number: values.phoneNumber,
       total_members: Number(values.totalMembers),

@@ -171,6 +171,10 @@ const UpdateFamilyInformation = () => {
 
   // Handle changes to form fields
   const handleFieldChange: FamilyRegistrationChangeHandler = (field, value) => {
+    if (field === "nationalID") {
+      return;
+    }
+
     setValues((currentValues) => {
       // If the "isFemaleHeaded" field is changed, reset the "femaleHeadReason" if it's set to false
       if (field === "isFemaleHeaded") {
@@ -228,8 +232,17 @@ const UpdateFamilyInformation = () => {
         throw new Error("Your session has expired. Please sign in again.");
       }
 
-      // Update the family information using Supabase and navigate to the family profile page on success
-      const updatedFamily = await updateFamilyByNationalId(nationalID, values);
+      // Update editable family information and navigate to the profile page on success.
+      const updatedFamily = await updateFamilyByNationalId(nationalID, {
+        familyHeadName: values.familyHeadName,
+        phoneNumber: values.phoneNumber,
+        totalMembers: values.totalMembers,
+        isFemaleHeaded: values.isFemaleHeaded,
+        femaleHeadReason: values.femaleHeadReason,
+        currentCampId: values.currentCampId,
+        originalResidenceGovernorate: values.originalResidenceGovernorate,
+        originalResidenceCity: values.originalResidenceCity,
+      });
 
       navigate(`/families/${updatedFamily.nationalId}`, {
         replace: true,
@@ -239,12 +252,7 @@ const UpdateFamilyInformation = () => {
       const errorCode = getErrorCode(error);
 
       if (errorCode === "23505") {
-        setErrors({
-          nationalID: "A family with this National ID already exists.",
-        });
-        setFormError(
-          "This National ID is already registered to another family.",
-        );
+        setFormError("This update conflicts with an existing family record.");
       } else if (errorCode === "42501") {
         setFormError(
           "You are not authorized to update this family. You can update only families you registered in your assigned camp.",
@@ -320,6 +328,7 @@ const UpdateFamilyInformation = () => {
           errors={errors}
           onChange={handleFieldChange}
           disabled={isSubmitting}
+          isNationalIdReadOnly
         />
         <HouseholdInformationCard
           values={values}

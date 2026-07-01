@@ -9,6 +9,7 @@ interface FamilyIdentificationCardProps {
   errors: FamilyRegistrationErrors;
   onChange: FamilyRegistrationChangeHandler;
   disabled?: boolean;
+  isNationalIdReadOnly?: boolean;
 }
 
 const FamilyIdentificationCard = ({
@@ -16,7 +17,16 @@ const FamilyIdentificationCard = ({
   errors,
   onChange,
   disabled = false,
+  isNationalIdReadOnly = false,
 }: FamilyIdentificationCardProps) => {
+  const nationalIdHelpId = isNationalIdReadOnly
+    ? "nationalID-readonly-help"
+    : undefined;
+  const nationalIdErrorId = errors.nationalID ? "nationalID-error" : undefined;
+  const nationalIdDescribedBy = [nationalIdErrorId, nationalIdHelpId]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <h2 className="text-lg font-semibold mb-4">Family Identification</h2>
@@ -37,14 +47,29 @@ const FamilyIdentificationCard = ({
             required
             maxLength={9}
             value={values.nationalID}
-            onChange={(event) =>
-              onChange("nationalID", event.target.value.replace(/\D/g, "").slice(0, 9))
-            }
+            onChange={(event) => {
+              if (isNationalIdReadOnly) {
+                return;
+              }
+
+              onChange(
+                "nationalID",
+                event.target.value.replace(/\D/g, "").slice(0, 9),
+              );
+            }}
             disabled={disabled}
+            readOnly={isNationalIdReadOnly}
             aria-invalid={Boolean(errors.nationalID)}
-            aria-describedby={errors.nationalID ? "nationalID-error" : undefined}
-            className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-describedby={nationalIdDescribedBy || undefined}
+            className={`w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              isNationalIdReadOnly ? "bg-gray-100 text-gray-600" : ""
+            }`}
           />
+          {isNationalIdReadOnly && (
+            <p id="nationalID-readonly-help" className="mt-1 text-sm text-gray-500">
+              National ID cannot be modified.
+            </p>
+          )}
           {errors.nationalID && (
             <p id="nationalID-error" className="mt-1 text-sm text-red-600">
               {errors.nationalID}
