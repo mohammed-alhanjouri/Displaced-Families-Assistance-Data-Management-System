@@ -214,10 +214,10 @@ export const calculateVulnerability = ({
   const score =
     (hasElderlyMember ? 3 : 0) +
     (hasDisability ? 3 : 0) +
-    (totalMembers > 5 ? 2 : 0) +
+    (totalMembers > 6 ? 2 : 0) +
     (isFemaleHeaded ? 2 : 0);
   const level: VulnerabilityLevel =
-    score >= 8 ? "High" : score >= 6 ? "Medium" : "Low";
+    score >= 7 ? "High" : score >= 4 ? "Medium" : "Low";
 
   return { score, level };
 };
@@ -693,7 +693,7 @@ export const createVulnerabilityAssessment = async ({
       elderly_members_count: hasElderlyMember ? elderlyMembersCount : 0,
       has_disability: hasDisability,
       disabilities_count: hasDisability ? disabilitiesCount : 0,
-      is_large_family: totalMembers > 5,
+      is_large_family: totalMembers > 6,
       is_female_headed: isFemaleHeaded,
       score,
       level,
