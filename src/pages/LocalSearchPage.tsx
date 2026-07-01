@@ -44,7 +44,7 @@ const LocalSearchPage = () => {
   );
 
   const handlePageChange = (newPage: number) => {
-    setPage(newPage);
+    setPage(Math.min(Math.max(newPage, 1), totalPages));
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -209,7 +209,7 @@ const LocalSearchPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((family) => (
+                  {paginatedResults.map((family) => (
                     <tr key={family.id} className="border-t">
                       <td className="py-2 px-4 border">{family.nationalId}</td>
                       <td className="py-2 px-4 border">
@@ -259,7 +259,7 @@ const LocalSearchPage = () => {
           <div className="mt-5 flex items-center justify-center gap-2">
             <button
               type="button"
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               className={paginationButtonClassName}
             >
@@ -270,7 +270,7 @@ const LocalSearchPage = () => {
                 <button
                   key={pageNumber}
                   type="button"
-                  onClick={() => setPage(pageNumber)}
+                  onClick={() => handlePageChange(pageNumber)}
                   className={`rounded-md border px-3 py-2 text-sm font-medium ${
                     pageNumber === currentPage
                       ? "border-gray-300 bg-gray-300 text-gray-900"
@@ -283,9 +283,7 @@ const LocalSearchPage = () => {
             )}
             <button
               type="button"
-              onClick={() =>
-                setPage((current) => Math.min(totalPages, current + 1))
-              }
+              onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               className={paginationButtonClassName}
             >
