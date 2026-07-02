@@ -164,12 +164,101 @@ export type DashboardStatsFilters = {
   toDate: string;
 };
 
+export type DashboardChartDatum = {
+  label: string;
+  value: number;
+};
+
+export type DashboardVulnerabilityDatum = {
+  level: VulnerabilityLevel;
+  count: number;
+};
+
+export type DashboardAssistanceActivity = {
+  id: string;
+  familyHeadName: string;
+  nationalId: string;
+  currentCampName: string | null;
+  assistanceType: string;
+  assistanceDate: string;
+  providerOrganization: string;
+  recordedByName: string | null;
+};
+
+export type DashboardInsights = {
+  familiesByCamp: DashboardChartDatum[];
+  vulnerabilityDistribution: DashboardVulnerabilityDatum[];
+  recentAssistance: DashboardAssistanceActivity[];
+};
+
+export type ReportsReportType =
+  | "families-by-location"
+  | "vulnerability-levels"
+  | "assistance-types"
+  | "assistance-history";
+
+export type ReportsFilters = DashboardStatsFilters & {
+  vulnerabilityLevel: VulnerabilityLevel | "";
+  assistanceType: string;
+};
+
+export type ReportSummary = {
+  totalFamilies: number;
+  totalPersons: number;
+  highVulnerabilityFamilies: number;
+  totalAssistanceRecords: number;
+};
+
+export type FamiliesByLocationReportRow = {
+  campId: string;
+  campName: string;
+  familyCount: number;
+  totalMembers: number;
+  highVulnerabilityFamilies: number;
+};
+
+export type VulnerabilityReportRow = {
+  level: VulnerabilityLevel;
+  familyCount: number;
+  percentage: number;
+};
+
+export type AssistanceTypeReportRow = {
+  assistanceType: string;
+  recordCount: number;
+  familiesServed: number;
+  latestAssistanceDate: string | null;
+};
+
+export type AssistanceHistoryReportRow = {
+  id: string;
+  assistanceDate: string;
+  assistanceType: string;
+  providerOrganization: string;
+  notes: string | null;
+  recordedByName: string | null;
+  familyHeadName: string;
+  nationalId: string;
+  currentCampName: string | null;
+  vulnerabilityLevel: VulnerabilityLevel;
+};
+
+export type ReportsData = {
+  summary: ReportSummary;
+  familiesByLocation: FamiliesByLocationReportRow[];
+  vulnerabilityLevels: VulnerabilityReportRow[];
+  assistanceTypes: AssistanceTypeReportRow[];
+  assistanceHistory: AssistanceHistoryReportRow[];
+};
+
 // Type representing a row of family data for dashboard statistics
 type DashboardStatsFamilyRow = {
   id: string;
   total_members: number;
   is_female_headed: boolean;
 };
+
+const vulnerabilityLevelOrder: VulnerabilityLevel[] = ["Low", "Medium", "High"];
 
 // Select query for fetching family data
 const familySelect =
@@ -341,6 +430,59 @@ const withFamilySummaries = async (families: FamilyRecord[]) => {
     ...family,
     lastAssistanceDate: latestAssistanceDateByFamily.get(family.id) ?? null,
   }));
+};
+
+const fetchFilteredFamilies = async (
+  filters: DashboardStatsFilters,
+  dateColumn: "created_at" | "updated_at",
+) => {
+  let query = supabase
+    .from("families")
+    .select(familySelect)
+    .order(dateColumn, { ascending: false });
+
+  if (filters.campId) {
+    query = query.eq("current_camp_id", filters.campId);
+  }
+
+  if (filters.fromDate) {
+    query = query.gte(dateColumn, getDateTimeStart(filters.fromDate));
+  }
+
+  if (filters.toDate) {
+    query = query.lt(dateColumn, getDateTimeStart(getNextDate(filters.toDate)));
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  return withVulnerabilityLevels(((data ?? []) as FamilyRow[]).map(toFamilyRecord));
+};
+
+const fetchFamiliesByIds = async (familyIds: string[]) => {
+  const uniqueFamilyIds = Array.from(new Set(familyIds));
+
+  if (uniqueFamilyIds.length === 0) {
+    return new Map<string, FamilyRecord>();
+  }
+
+  const { data, error } = await supabase
+    .from("families")
+    .select(familySelect)
+    .in("id", uniqueFamilyIds);
+
+  if (error) {
+    throw error;
+  }
+
+  const families = await withVulnerabilityLevels(
+    ((data ?? []) as FamilyRow[]).map(toFamilyRecord),
+  );
+
+  return new Map(families.map((family) => [family.id, family]));
 };
 
 const toAssistanceRecord = (row: AssistanceRow): AssistanceRecord => ({
@@ -608,6 +750,258 @@ export const fetchDashboardStats = async (
       return level === "High";
     }).length,
     assistanceProvidedCount: assistanceCount ?? 0,
+  };
+};
+
+const fetchAssistanceHistoryRows = async (
+  filters: ReportsFilters,
+): Promise<AssistanceHistoryReportRow[]> => {
+  let assistanceQuery = supabase
+    .from("family_assistance")
+    .select(assistanceSelect)
+    .order("assistance_date", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (filters.fromDate) {
+    assistanceQuery = assistanceQuery.gte("assistance_date", filters.fromDate);
+  }
+
+  if (filters.toDate) {
+    assistanceQuery = assistanceQuery.lte("assistance_date", filters.toDate);
+  }
+
+  if (filters.assistanceType) {
+    assistanceQuery = assistanceQuery.eq(
+      "assistance_type",
+      filters.assistanceType,
+    );
+  }
+
+  const { data, error } = await assistanceQuery;
+
+  if (error) {
+    throw error;
+  }
+
+  const assistanceRecords = ((data ?? []) as AssistanceRow[]).map(
+    toAssistanceRecord,
+  );
+  const familiesById = await fetchFamiliesByIds(
+    assistanceRecords.map((assistance) => assistance.familyId),
+  );
+
+  return assistanceRecords.flatMap((assistance) => {
+    const family = familiesById.get(assistance.familyId);
+
+    if (!family) {
+      return [];
+    }
+
+    if (filters.campId && family.currentCampId !== filters.campId) {
+      return [];
+    }
+
+    if (
+      filters.vulnerabilityLevel &&
+      family.vulnerabilityLevel !== filters.vulnerabilityLevel
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        id: assistance.id,
+        assistanceDate: assistance.assistanceDate,
+        assistanceType: assistance.assistanceType,
+        providerOrganization: assistance.providerOrganization,
+        notes: assistance.notes,
+        recordedByName: assistance.recordedByName,
+        familyHeadName: family.familyHeadName,
+        nationalId: family.nationalId,
+        currentCampName: family.currentCampName,
+        vulnerabilityLevel: family.vulnerabilityLevel,
+      },
+    ];
+  });
+};
+
+const buildFamiliesByLocationReport = (
+  families: FamilyRecord[],
+): FamiliesByLocationReportRow[] => {
+  const rowsByCamp = new Map<string, FamiliesByLocationReportRow>();
+
+  for (const family of families) {
+    const campId = family.currentCampId || "unknown";
+    const existingRow =
+      rowsByCamp.get(campId) ??
+      ({
+        campId,
+        campName: family.currentCampName ?? "Unknown camp",
+        familyCount: 0,
+        totalMembers: 0,
+        highVulnerabilityFamilies: 0,
+      } satisfies FamiliesByLocationReportRow);
+
+    existingRow.familyCount += 1;
+    existingRow.totalMembers += family.totalMembers;
+
+    if (family.vulnerabilityLevel === "High") {
+      existingRow.highVulnerabilityFamilies += 1;
+    }
+
+    rowsByCamp.set(campId, existingRow);
+  }
+
+  return Array.from(rowsByCamp.values()).sort((first, second) => {
+    if (second.familyCount !== first.familyCount) {
+      return second.familyCount - first.familyCount;
+    }
+
+    return first.campName.localeCompare(second.campName);
+  });
+};
+
+const buildVulnerabilityReport = (
+  families: FamilyRecord[],
+): VulnerabilityReportRow[] => {
+  const totalFamilies = families.length;
+
+  return vulnerabilityLevelOrder.map((level) => {
+    const familyCount = families.filter(
+      (family) => family.vulnerabilityLevel === level,
+    ).length;
+
+    return {
+      level,
+      familyCount,
+      percentage:
+        totalFamilies === 0
+          ? 0
+          : Math.round((familyCount / totalFamilies) * 1000) / 10,
+    };
+  });
+};
+
+const buildAssistanceTypeReport = (
+  assistanceHistory: AssistanceHistoryReportRow[],
+): AssistanceTypeReportRow[] => {
+  const rowsByType = new Map<
+    string,
+    AssistanceTypeReportRow & { familyIds: Set<string> }
+  >();
+
+  for (const assistance of assistanceHistory) {
+    const existingRow =
+      rowsByType.get(assistance.assistanceType) ??
+      ({
+        assistanceType: assistance.assistanceType,
+        recordCount: 0,
+        familiesServed: 0,
+        latestAssistanceDate: null,
+        familyIds: new Set<string>(),
+      } satisfies AssistanceTypeReportRow & { familyIds: Set<string> });
+
+    existingRow.recordCount += 1;
+    existingRow.familyIds.add(assistance.nationalId);
+
+    if (
+      !existingRow.latestAssistanceDate ||
+      assistance.assistanceDate > existingRow.latestAssistanceDate
+    ) {
+      existingRow.latestAssistanceDate = assistance.assistanceDate;
+    }
+
+    rowsByType.set(assistance.assistanceType, existingRow);
+  }
+
+  return Array.from(rowsByType.values())
+    .map(({ familyIds, ...row }) => ({
+      ...row,
+      familiesServed: familyIds.size,
+    }))
+    .sort((first, second) => {
+      if (second.recordCount !== first.recordCount) {
+        return second.recordCount - first.recordCount;
+      }
+
+      return first.assistanceType.localeCompare(second.assistanceType);
+    });
+};
+
+export const fetchDashboardInsights = async (
+  filters: DashboardStatsFilters,
+): Promise<DashboardInsights> => {
+  const reportFilters: ReportsFilters = {
+    ...filters,
+    vulnerabilityLevel: "",
+    assistanceType: "",
+  };
+
+  const [families, assistanceHistory] = await Promise.all([
+    fetchFilteredFamilies(filters, "updated_at"),
+    fetchAssistanceHistoryRows(reportFilters),
+  ]);
+
+  return {
+    familiesByCamp: buildFamiliesByLocationReport(families).map((row) => ({
+      label: row.campName,
+      value: row.familyCount,
+    })),
+    vulnerabilityDistribution: buildVulnerabilityReport(families).map(
+      (row) => ({
+        level: row.level,
+        count: row.familyCount,
+      }),
+    ),
+    recentAssistance: assistanceHistory.slice(0, 6).map((assistance) => ({
+      id: assistance.id,
+      familyHeadName: assistance.familyHeadName,
+      nationalId: assistance.nationalId,
+      currentCampName: assistance.currentCampName,
+      assistanceType: assistance.assistanceType,
+      assistanceDate: assistance.assistanceDate,
+      providerOrganization: assistance.providerOrganization,
+      recordedByName: assistance.recordedByName,
+    })),
+  };
+};
+
+export const fetchReportsData = async (
+  filters: ReportsFilters,
+): Promise<ReportsData> => {
+  const familyFilters: DashboardStatsFilters = {
+    campId: filters.campId,
+    fromDate: filters.fromDate,
+    toDate: filters.toDate,
+  };
+
+  const [families, assistanceHistory] = await Promise.all([
+    fetchFilteredFamilies(familyFilters, "created_at"),
+    fetchAssistanceHistoryRows(filters),
+  ]);
+  const filteredFamilies = filters.vulnerabilityLevel
+    ? families.filter(
+        (family) => family.vulnerabilityLevel === filters.vulnerabilityLevel,
+      )
+    : families;
+  const highVulnerabilityFamilies = filteredFamilies.filter(
+    (family) => family.vulnerabilityLevel === "High",
+  ).length;
+
+  return {
+    summary: {
+      totalFamilies: filteredFamilies.length,
+      totalPersons: filteredFamilies.reduce(
+        (sum, family) => sum + family.totalMembers,
+        0,
+      ),
+      highVulnerabilityFamilies,
+      totalAssistanceRecords: assistanceHistory.length,
+    },
+    familiesByLocation: buildFamiliesByLocationReport(filteredFamilies),
+    vulnerabilityLevels: buildVulnerabilityReport(filteredFamilies),
+    assistanceTypes: buildAssistanceTypeReport(assistanceHistory),
+    assistanceHistory,
   };
 };
 
