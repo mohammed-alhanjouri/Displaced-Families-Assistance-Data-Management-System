@@ -1,13 +1,15 @@
+import type { ReactNode } from "react";
+
 interface ChartsCardProps {
   title: string;
-  chart: React.ReactNode;
+  chart: ReactNode;
 }
 
 const ChartsCard = ({ title, chart }: ChartsCardProps) => {
   return (
-    <div className="bg-white border border-gray-300 rounded-lg p-5">
-      <h2 className="mb-5 text-sm font-medium text-gray-800">{title}</h2>
-      <div className="flex h-52 items-center bg-gray-200 px-2 rounded-md">
+    <div className="rounded-lg border border-gray-300 bg-white p-5 shadow-sm">
+      <h2 className="mb-5 text-sm font-semibold text-gray-800">{title}</h2>
+      <div className="min-h-64 rounded-md border border-gray-200 bg-gray-50 p-4">
         {chart}
       </div>
     </div>
