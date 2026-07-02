@@ -1,24 +1,476 @@
-import { useEffect, useRef, useState, type SubmitEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type SubmitEvent,
+} from "react";
+import VulnerabilityLevelBadge from "../components/families/VulnerabilityLevelBadge";
+import { vulnerabilityLevels } from "../components/families/vulnerabilityLevel";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import { fetchCamps, type Camp } from "../lib/camps";
+import {
+  fetchReportsData,
+  type AssistanceHistoryReportRow,
+  type AssistanceTypeReportRow,
+  type FamiliesByLocationReportRow,
+  type ReportSummary,
+  type ReportsData,
+  type ReportsFilters,
+  type ReportsReportType,
+  type VulnerabilityReportRow,
+} from "../lib/families";
 import DashboardLayout from "../layouts/DashboardLayout";
 
-const reportTypes = [
-  "Family Summary",
-  "Assistance Overview",
-  "Vulnerability Analysis",
-];
+type ReportFormData = ReportsFilters & {
+  reportType: ReportsReportType | "";
+};
 
-// Define a delay for simulating report generation time
-const reportGenerationDelayMs = 300;
+type GeneratedReport = {
+  reportType: ReportsReportType;
+  filters: ReportsFilters;
+  campName: string;
+  data: ReportsData;
+  generatedAt: string;
+};
+
+const reportTypeLabels: Record<ReportsReportType, string> = {
+  "families-by-location": "Families by Camp / Location",
+  "vulnerability-levels": "Families by Vulnerability Level",
+  "assistance-types": "Assistance by Type",
+  "assistance-history": "Detailed Family Assistance History",
+};
+
+const reportTypeOptions = Object.entries(reportTypeLabels).map(
+  ([value, label]) => ({
+    value: value as ReportsReportType,
+    label,
+  }),
+);
+
+const assistanceTypes = ["Food", "Shelter", "Medical", "Education", "Cash"];
+
+const emptyReportFormData: ReportFormData = {
+  reportType: "",
+  campId: "",
+  fromDate: "",
+  toDate: "",
+  vulnerabilityLevel: "",
+  assistanceType: "",
+};
+
+const formatDate = (value: string) =>
+  new Intl.DateTimeFormat("en-CA", { dateStyle: "medium" }).format(
+    new Date(`${value}T00:00:00`),
+  );
+
+const formatDateTime = (value: string) =>
+  new Intl.DateTimeFormat("en-CA", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+
+const formatOptionalDate = (value: string | null) =>
+  value ? formatDate(value) : "N/A";
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+const getFilterSummary = (report: GeneratedReport) => {
+  const parts = [
+    `Location: ${report.campName}`,
+    report.filters.fromDate
+      ? `From: ${formatDate(report.filters.fromDate)}`
+      : "From: All dates",
+    report.filters.toDate
+      ? `To: ${formatDate(report.filters.toDate)}`
+      : "To: All dates",
+    report.filters.vulnerabilityLevel
+      ? `Vulnerability: ${report.filters.vulnerabilityLevel}`
+      : "Vulnerability: All levels",
+    report.filters.assistanceType
+      ? `Assistance: ${report.filters.assistanceType}`
+      : "Assistance: All types",
+  ];
+
+  return parts.join(" | ");
+};
+
+const SummaryCards = ({ summary }: { summary: ReportSummary }) => {
+  const cards = [
+    { label: "Families", value: summary.totalFamilies },
+    { label: "Persons", value: summary.totalPersons },
+    { label: "High Vulnerability", value: summary.highVulnerabilityFamilies },
+    { label: "Assistance Records", value: summary.totalAssistanceRecords },
+  ];
+
+  return (
+    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {cards.map((card) => (
+        <div
+          key={card.label}
+          className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm"
+        >
+          <h3 className="text-sm font-medium text-gray-600">{card.label}</h3>
+          <p className="mt-2 text-2xl font-semibold text-[#0066FF]">
+            {card.value}
+          </p>
+        </div>
+      ))}
+    </section>
+  );
+};
+
+const EmptyTableState = ({ message }: { message: string }) => (
+  <div className="rounded-md border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+    {message}
+  </div>
+);
+
+const FamiliesByLocationTable = ({
+  rows,
+}: {
+  rows: FamiliesByLocationReportRow[];
+}) => {
+  if (rows.length === 0) {
+    return <EmptyTableState message="No family records match the filters." />;
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
+        <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+          <tr>
+            <th className="px-4 py-3 font-semibold">Camp / Location</th>
+            <th className="px-4 py-3 font-semibold">Families</th>
+            <th className="px-4 py-3 font-semibold">Persons</th>
+            <th className="px-4 py-3 font-semibold">High Vulnerability</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
+          {rows.map((row) => (
+            <tr key={row.campId}>
+              <td className="px-4 py-3 font-medium text-gray-900">
+                {row.campName}
+              </td>
+              <td className="px-4 py-3">{row.familyCount}</td>
+              <td className="px-4 py-3">{row.totalMembers}</td>
+              <td className="px-4 py-3">{row.highVulnerabilityFamilies}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const VulnerabilityTable = ({ rows }: { rows: VulnerabilityReportRow[] }) => {
+  if (rows.every((row) => row.familyCount === 0)) {
+    return (
+      <EmptyTableState message="No vulnerability records match the filters." />
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
+        <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+          <tr>
+            <th className="px-4 py-3 font-semibold">Vulnerability Level</th>
+            <th className="px-4 py-3 font-semibold">Families</th>
+            <th className="px-4 py-3 font-semibold">Share</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
+          {rows.map((row) => (
+            <tr key={row.level}>
+              <td className="px-4 py-3">
+                <VulnerabilityLevelBadge level={row.level} variant="compact" />
+              </td>
+              <td className="px-4 py-3">{row.familyCount}</td>
+              <td className="px-4 py-3">{row.percentage}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const AssistanceTypeTable = ({ rows }: { rows: AssistanceTypeReportRow[] }) => {
+  if (rows.length === 0) {
+    return (
+      <EmptyTableState message="No assistance records match the filters." />
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
+        <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+          <tr>
+            <th className="px-4 py-3 font-semibold">Assistance Type</th>
+            <th className="px-4 py-3 font-semibold">Records</th>
+            <th className="px-4 py-3 font-semibold">Families Served</th>
+            <th className="px-4 py-3 font-semibold">Latest Date</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
+          {rows.map((row) => (
+            <tr key={row.assistanceType}>
+              <td className="px-4 py-3 font-medium text-gray-900">
+                {row.assistanceType}
+              </td>
+              <td className="px-4 py-3">{row.recordCount}</td>
+              <td className="px-4 py-3">{row.familiesServed}</td>
+              <td className="px-4 py-3">
+                {formatOptionalDate(row.latestAssistanceDate)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const AssistanceHistoryTable = ({
+  rows,
+}: {
+  rows: AssistanceHistoryReportRow[];
+}) => {
+  if (rows.length === 0) {
+    return (
+      <EmptyTableState message="No assistance history matches the filters." />
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
+        <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+          <tr>
+            <th className="px-4 py-3 font-semibold">Date</th>
+            <th className="px-4 py-3 font-semibold">Family</th>
+            <th className="px-4 py-3 font-semibold">Location</th>
+            <th className="px-4 py-3 font-semibold">Vulnerability</th>
+            <th className="px-4 py-3 font-semibold">Assistance</th>
+            <th className="px-4 py-3 font-semibold">Provider</th>
+            <th className="px-4 py-3 font-semibold">Notes</th>
+            <th className="px-4 py-3 font-semibold">Recorded By</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
+          {rows.map((row) => (
+            <tr key={row.id}>
+              <td className="whitespace-nowrap px-4 py-3">
+                {formatDate(row.assistanceDate)}
+              </td>
+              <td className="px-4 py-3">
+                <div className="font-medium text-gray-900">
+                  {row.familyHeadName}
+                </div>
+                <div className="text-xs text-gray-500">{row.nationalId}</div>
+              </td>
+              <td className="px-4 py-3">
+                {row.currentCampName ?? "Unknown camp"}
+              </td>
+              <td className="px-4 py-3">
+                <VulnerabilityLevelBadge
+                  level={row.vulnerabilityLevel}
+                  variant="compact"
+                />
+              </td>
+              <td className="px-4 py-3">{row.assistanceType}</td>
+              <td className="px-4 py-3">{row.providerOrganization}</td>
+              <td className="px-4 py-3">{row.notes || "N/A"}</td>
+              <td className="px-4 py-3">
+                {row.recordedByName ?? "Current user"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const ReportTable = ({ report }: { report: GeneratedReport }) => {
+  switch (report.reportType) {
+    case "families-by-location":
+      return <FamiliesByLocationTable rows={report.data.familiesByLocation} />;
+    case "vulnerability-levels":
+      return <VulnerabilityTable rows={report.data.vulnerabilityLevels} />;
+    case "assistance-types":
+      return <AssistanceTypeTable rows={report.data.assistanceTypes} />;
+    case "assistance-history":
+      return <AssistanceHistoryTable rows={report.data.assistanceHistory} />;
+    default:
+      return null;
+  }
+};
+
+const buildSummaryHtml = (summary: ReportSummary) => `
+  <div class="summary">
+    <div><strong>${summary.totalFamilies}</strong><span>Families</span></div>
+    <div><strong>${summary.totalPersons}</strong><span>Persons</span></div>
+    <div><strong>${summary.highVulnerabilityFamilies}</strong><span>High Vulnerability</span></div>
+    <div><strong>${summary.totalAssistanceRecords}</strong><span>Assistance Records</span></div>
+  </div>
+`;
+
+const buildReportTableHtml = (report: GeneratedReport) => {
+  switch (report.reportType) {
+    case "families-by-location":
+      return `
+        <table>
+          <thead><tr><th>Camp / Location</th><th>Families</th><th>Persons</th><th>High Vulnerability</th></tr></thead>
+          <tbody>
+            ${
+              report.data.familiesByLocation.length === 0
+                ? `<tr><td colspan="4">No family records match the filters.</td></tr>`
+                : report.data.familiesByLocation
+                    .map(
+                      (row) => `
+                        <tr>
+                          <td>${escapeHtml(row.campName)}</td>
+                          <td>${row.familyCount}</td>
+                          <td>${row.totalMembers}</td>
+                          <td>${row.highVulnerabilityFamilies}</td>
+                        </tr>
+                      `,
+                    )
+                    .join("")
+            }
+          </tbody>
+        </table>
+      `;
+    case "vulnerability-levels":
+      return `
+        <table>
+          <thead><tr><th>Vulnerability Level</th><th>Families</th><th>Share</th></tr></thead>
+          <tbody>
+            ${report.data.vulnerabilityLevels
+              .map(
+                (row) => `
+                  <tr>
+                    <td>${escapeHtml(row.level)}</td>
+                    <td>${row.familyCount}</td>
+                    <td>${row.percentage}%</td>
+                  </tr>
+                `,
+              )
+              .join("")}
+          </tbody>
+        </table>
+      `;
+    case "assistance-types":
+      return `
+        <table>
+          <thead><tr><th>Assistance Type</th><th>Records</th><th>Families Served</th><th>Latest Date</th></tr></thead>
+          <tbody>
+            ${
+              report.data.assistanceTypes.length === 0
+                ? `<tr><td colspan="4">No assistance records match the filters.</td></tr>`
+                : report.data.assistanceTypes
+                    .map(
+                      (row) => `
+                        <tr>
+                          <td>${escapeHtml(row.assistanceType)}</td>
+                          <td>${row.recordCount}</td>
+                          <td>${row.familiesServed}</td>
+                          <td>${escapeHtml(formatOptionalDate(row.latestAssistanceDate))}</td>
+                        </tr>
+                      `,
+                    )
+                    .join("")
+            }
+          </tbody>
+        </table>
+      `;
+    case "assistance-history":
+      return `
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th><th>Family</th><th>National ID</th><th>Location</th>
+              <th>Vulnerability</th><th>Assistance</th><th>Provider</th><th>Notes</th><th>Recorded By</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              report.data.assistanceHistory.length === 0
+                ? `<tr><td colspan="9">No assistance history matches the filters.</td></tr>`
+                : report.data.assistanceHistory
+                    .map(
+                      (row) => `
+                        <tr>
+                          <td>${escapeHtml(formatDate(row.assistanceDate))}</td>
+                          <td>${escapeHtml(row.familyHeadName)}</td>
+                          <td>${escapeHtml(row.nationalId)}</td>
+                          <td>${escapeHtml(row.currentCampName ?? "Unknown camp")}</td>
+                          <td>${escapeHtml(row.vulnerabilityLevel)}</td>
+                          <td>${escapeHtml(row.assistanceType)}</td>
+                          <td>${escapeHtml(row.providerOrganization)}</td>
+                          <td>${escapeHtml(row.notes || "N/A")}</td>
+                          <td>${escapeHtml(row.recordedByName ?? "Current user")}</td>
+                        </tr>
+                      `,
+                    )
+                    .join("")
+            }
+          </tbody>
+        </table>
+      `;
+    default:
+      return "";
+  }
+};
+
+const buildReportHtml = (report: GeneratedReport) => `
+  <!doctype html>
+  <html>
+    <head>
+      <title>${escapeHtml(reportTypeLabels[report.reportType])}</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 32px; color: #1f2937; }
+        h1 { margin: 0 0 8px; font-size: 24px; }
+        p { margin: 0 0 8px; color: #4b5563; }
+        .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0; }
+        .summary div { border: 1px solid #d1d5db; border-radius: 6px; padding: 12px; }
+        .summary strong { display: block; color: #0066ff; font-size: 22px; }
+        .summary span { display: block; margin-top: 4px; color: #4b5563; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 12px; }
+        th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; vertical-align: top; }
+        th { background: #f3f4f6; }
+      </style>
+    </head>
+    <body>
+      <h1>${escapeHtml(reportTypeLabels[report.reportType])}</h1>
+      <p>${escapeHtml(getFilterSummary(report))}</p>
+      <p>Generated: ${escapeHtml(formatDateTime(report.generatedAt))}</p>
+      ${buildSummaryHtml(report.data.summary)}
+      ${buildReportTableHtml(report)}
+    </body>
+  </html>
+`;
 
 const ReportsPage = () => {
-  const [showReportOutput, setShowReportOutput] = useState(false);
+  const [formData, setFormData] = useState<ReportFormData>({
+    ...emptyReportFormData,
+  });
+  const [generatedReport, setGeneratedReport] =
+    useState<GeneratedReport | null>(null);
   const [camps, setCamps] = useState<Camp[]>([]);
   const [isLoadingCamps, setIsLoadingCamps] = useState(true);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [campLoadError, setCampLoadError] = useState("");
-  // Store a ref to track the current report generation request, allowing us to cancel outdated requests if the user resets the form or generates a new report before the previous one completes
+  const [formError, setFormError] = useState("");
   const generationRequestRef = useRef(0);
 
   useEffect(() => {
@@ -48,97 +500,158 @@ const ReportsPage = () => {
 
     return () => {
       isActive = false;
-      // Increment the generation request ref to cancel any ongoing report generation if the component unmounts
       generationRequestRef.current += 1;
     };
   }, []);
 
-  const handleReset = () => {
-    // Increment the generation request ref to cancel any ongoing report generation when the form is reset
-    generationRequestRef.current += 1;
-    setIsGeneratingReport(false);
-    setShowReportOutput(false);
+  const handleChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = event.target;
+    setFormData((current) => ({ ...current, [name]: value }));
   };
 
-  const handleGenerateReport = async (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleReset = () => {
+    generationRequestRef.current += 1;
+    setFormData({ ...emptyReportFormData });
+    setGeneratedReport(null);
+    setFormError("");
+    setIsGeneratingReport(false);
+  };
 
-    const formData = new FormData(e.currentTarget);
-    const reportType = formData.get("reportType") as string;
-    const campId = formData.get("campId") as string;
-    const fromDate = formData.get("fromDate") as string;
-    const toDate = formData.get("toDate") as string;
+  const handleGenerateReport = async (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    if (!reportType || !campId || !fromDate || !toDate) {
+    if (!formData.reportType) {
+      setFormError("Select a report type.");
       return;
     }
 
-    // Increment the generation request ref to track the current report generation request. This allows us to cancel outdated requests if the user resets the form or generates a new report before the previous one completes.
+    if (
+      formData.fromDate &&
+      formData.toDate &&
+      formData.fromDate > formData.toDate
+    ) {
+      setFormError("Date From cannot be later than Date To.");
+      return;
+    }
+
+    const reportFilters: ReportsFilters = {
+      campId: formData.campId,
+      fromDate: formData.fromDate,
+      toDate: formData.toDate,
+      vulnerabilityLevel: formData.vulnerabilityLevel,
+      assistanceType: formData.assistanceType,
+    };
+    const selectedCamp = camps.find((camp) => camp.id === reportFilters.campId);
     const generationRequest = generationRequestRef.current + 1;
     generationRequestRef.current = generationRequest;
     setIsGeneratingReport(true);
-    setShowReportOutput(false);
+    setFormError("");
 
-    // Simulate report generation delay
-    await new Promise((resolve) =>
-      window.setTimeout(resolve, reportGenerationDelayMs),
-    );
+    try {
+      const data = await fetchReportsData(reportFilters);
 
-    if (generationRequestRef.current === generationRequest) {
-      setShowReportOutput(true);
-      setIsGeneratingReport(false);
+      if (generationRequestRef.current === generationRequest) {
+        setGeneratedReport({
+          reportType: formData.reportType,
+          filters: reportFilters,
+          campName: reportFilters.campId
+            ? (selectedCamp?.name ?? "Selected location")
+            : "All locations",
+          data,
+          generatedAt: new Date().toISOString(),
+        });
+      }
+    } catch (error) {
+      if (generationRequestRef.current === generationRequest) {
+        setFormError(
+          error instanceof Error
+            ? error.message
+            : "Unable to generate the report.",
+        );
+        setGeneratedReport(null);
+      }
+    } finally {
+      if (generationRequestRef.current === generationRequest) {
+        setIsGeneratingReport(false);
+      }
     }
   };
+
+  const handleExportPdf = () => {
+    if (!generatedReport) {
+      return;
+    }
+
+    const printWindow = window.open("", "_blank", "width=1000,height=800");
+
+    if (!printWindow) {
+      setFormError("Unable to open the PDF export window.");
+      return;
+    }
+
+    printWindow.document.write(buildReportHtml(generatedReport));
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+
   return (
     <DashboardLayout>
       <div>
         <Breadcrumbs items={[{ label: "Reports", href: "/reports" }]} />
-        <h1 className="text-2xl font-bold text-gray-800 mt-3 mb-6">
+        <h1 className="mt-3 mb-6 text-2xl font-bold text-gray-800">
           Generate Reports
         </h1>
       </div>
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">Report Configuration</h2>
-        <form onSubmit={handleGenerateReport} aria-busy={isGeneratingReport}>
-          <div className="grid grid-cols-4 gap-6">
-            <label
-              htmlFor="report-type"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Report Type
-            </label>
-            <select
-              id="report-type"
-              name="reportType"
-              className="border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-            >
-              <option value="">Select a report type</option>
-              {reportTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
 
-            <label
-              htmlFor="report-camp"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Camp/Location
-            </label>
-            <div className="mb-4">
+      <section className="rounded-lg border border-gray-300 bg-white p-5 shadow-sm">
+        <h2 className="mb-4 text-xl font-semibold text-gray-800">
+          Report Configuration
+        </h2>
+        <form onSubmit={handleGenerateReport} aria-busy={isGeneratingReport}>
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div>
+              <label
+                htmlFor="report-type"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                Report Type
+              </label>
+              <select
+                id="report-type"
+                name="reportType"
+                value={formData.reportType}
+                onChange={handleChange}
+                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select a report type</option>
+                {reportTypeOptions.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="report-camp"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                Camp / Location
+              </label>
               <select
                 id="report-camp"
                 name="campId"
-                disabled={isLoadingCamps || Boolean(campLoadError)}
-                aria-invalid={Boolean(campLoadError)}
-                aria-describedby={
-                  campLoadError ? "report-camp-error" : undefined
-                }
-                className="w-full border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+                value={formData.campId}
+                onChange={handleChange}
+                disabled={isLoadingCamps}
+                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
               >
                 <option value="">
-                  {isLoadingCamps ? "Loading camps..." : "Select a camp"}
+                  {isLoadingCamps ? "Loading locations..." : "All locations"}
                 </option>
                 {camps.map((camp) => (
                   <option key={camp.id} value={camp.id}>
@@ -147,38 +660,99 @@ const ReportsPage = () => {
                 ))}
               </select>
               {campLoadError && (
-                <p id="report-camp-error" className="mt-1 text-sm text-red-600">
+                <p className="mt-2 text-sm text-red-600" role="alert">
                   {campLoadError}
                 </p>
               )}
             </div>
 
-            <label
-              htmlFor="from-date"
-              className="block text-sm font-medium text-gray-800"
-            >
-              Date From
-            </label>
-            <input
-              id="from-date"
-              name="fromDate"
-              type="date"
-              className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF] sm:text-sm/6"
-            />
+            <div>
+              <label
+                htmlFor="report-vulnerability"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                Vulnerability Level
+              </label>
+              <select
+                id="report-vulnerability"
+                name="vulnerabilityLevel"
+                value={formData.vulnerabilityLevel}
+                onChange={handleChange}
+                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All levels</option>
+                {vulnerabilityLevels.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <label
-              htmlFor="to-date"
-              className="block text-sm font-medium text-gray-800"
-            >
-              Date To
-            </label>
-            <input
-              id="to-date"
-              name="toDate"
-              type="date"
-              className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF] sm:text-sm/6"
-            />
+            <div>
+              <label
+                htmlFor="report-assistance-type"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                Assistance Type
+              </label>
+              <select
+                id="report-assistance-type"
+                name="assistanceType"
+                value={formData.assistanceType}
+                onChange={handleChange}
+                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All types</option>
+                {assistanceTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="from-date"
+                className="mb-2 block text-sm font-medium text-gray-800"
+              >
+                Date From
+              </label>
+              <input
+                id="from-date"
+                name="fromDate"
+                type="date"
+                value={formData.fromDate}
+                onChange={handleChange}
+                className="block w-full rounded-md bg-white px-3 py-2 text-sm text-gray-600 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF]"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="to-date"
+                className="mb-2 block text-sm font-medium text-gray-800"
+              >
+                Date To
+              </label>
+              <input
+                id="to-date"
+                name="toDate"
+                type="date"
+                value={formData.toDate}
+                onChange={handleChange}
+                className="block w-full rounded-md bg-white px-3 py-2 text-sm text-gray-600 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-[#0066FF]"
+              />
+            </div>
           </div>
+
+          {formError && (
+            <p className="mt-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+              {formError}
+            </p>
+          )}
+
           <div className="mt-6 flex flex-wrap justify-end gap-3">
             <button
               type="submit"
@@ -189,7 +763,7 @@ const ReportsPage = () => {
             </button>
 
             <button
-              type="reset"
+              type="button"
               onClick={handleReset}
               disabled={isGeneratingReport}
               className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
@@ -198,23 +772,37 @@ const ReportsPage = () => {
             </button>
           </div>
         </form>
-      </div>
+      </section>
 
-      {showReportOutput && (
-        <div className="bg-white p-4 rounded-lg shadow mt-6">
-          <h2 className="text-xl font-semibold mb-4">Report Output</h2>
-          <p className="text-gray-500">
-            [Report preview placeholder (chart/table depending on type)]
-          </p>
-          <div className="mt-6 flex flex-wrap justify-end gap-3">
+      {generatedReport && (
+        <section className="mt-6 rounded-lg border border-gray-300 bg-white p-5 shadow-sm">
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800">
+                {reportTypeLabels[generatedReport.reportType]}
+              </h2>
+              <p className="mt-2 text-sm text-gray-600">
+                {getFilterSummary(generatedReport)}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                Generated {formatDateTime(generatedReport.generatedAt)}
+              </p>
+            </div>
             <button
               type="button"
+              onClick={handleExportPdf}
               className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
             >
               Export as PDF
             </button>
           </div>
-        </div>
+
+          <SummaryCards summary={generatedReport.data.summary} />
+
+          <div className="mt-6 rounded-md border border-gray-200">
+            <ReportTable report={generatedReport} />
+          </div>
+        </section>
       )}
     </DashboardLayout>
   );
