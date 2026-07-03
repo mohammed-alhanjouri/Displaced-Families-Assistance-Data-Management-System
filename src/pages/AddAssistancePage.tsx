@@ -1,7 +1,24 @@
 import { useEffect, useState, type ChangeEvent, type SubmitEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Building2,
+  Calendar,
+  CheckCircle2,
+  HandHeart,
+  History,
+  LoaderCircle,
+  MapPin,
+  PackagePlus,
+  Save,
+  StickyNote,
+  UserRound,
+  X,
+} from "lucide-react";
 import VulnerabilityLevelBadge from "../components/families/VulnerabilityLevelBadge";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import PageHeader from "../components/ui/PageHeader";
 import {
   createAssistanceRecord,
   fetchAssistanceRecords,
@@ -200,7 +217,8 @@ const AddAssistancePage = () => {
   if (isLoading) {
     return (
       <RegisterFamilyPageLayout>
-        <p className="text-sm text-gray-600">
+        <p className="flex items-center gap-2 text-sm text-gray-600">
+          <LoaderCircle className="h-4 w-4 animate-spin" />
           Loading assistance information...
         </p>
       </RegisterFamilyPageLayout>
@@ -218,20 +236,27 @@ const AddAssistancePage = () => {
               { label: "Add Assistance" },
             ]}
           />
-          <h1 className="mt-3 mb-6 text-2xl font-bold text-gray-800">
-            Add Assistance
-          </h1>
+          <PageHeader
+            icon={PackagePlus}
+            title="Add Assistance"
+            className="mt-3 mb-6"
+          />
         </div>
         <div className="rounded-lg bg-white p-6 shadow">
-          <h2 className="text-2xl font-bold text-gray-800">Family Not Found</h2>
-          <p className="mt-3 text-sm text-red-600" role="alert">
+          <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
+            <AlertCircle className="h-6 w-6 text-red-600" />
+            Family Not Found
+          </h2>
+          <p className="mt-3 flex items-center gap-2 text-sm text-red-600" role="alert">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {loadError || "No family found with the provided National ID."}
           </p>
           <button
             type="button"
             onClick={() => navigate("/local-search")}
-            className="mt-5 rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+            className="mt-5 inline-flex items-center gap-2 rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
           >
+            <ArrowLeft className="h-4 w-4" />
             Back to Local Search
           </button>
         </div>
@@ -249,20 +274,27 @@ const AddAssistancePage = () => {
             { label: "Add Assistance" },
           ]}
         />
-        <h1 className="mt-3 mb-6 text-2xl font-bold text-gray-800">
-          Add Assistance
-        </h1>
+        <PageHeader
+          icon={PackagePlus}
+          title="Add Assistance"
+          subtitle="Record what was delivered to the selected family."
+          className="mt-3 mb-6"
+        />
       </div>
 
       <section className="rounded-lg bg-white p-6 shadow">
-        <h2 className="mb-4 text-xl font-semibold">Family Summary</h2>
+        <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
+          <UserRound className="h-5 w-5 text-[#0066FF]" />
+          Family Summary
+        </h2>
         <div className="grid gap-4 md:grid-cols-2">
           <p>
             <span className="font-semibold text-gray-800">National ID:</span>{" "}
             {family.nationalId}
           </p>
           <p>
-            <span className="font-semibold text-gray-800">
+            <span className="inline-flex items-center gap-1.5 font-semibold text-gray-800">
+              <UserRound className="h-4 w-4 text-gray-400" />
               Family Head Name:
             </span>{" "}
             {family.familyHeadName}
@@ -277,14 +309,20 @@ const AddAssistancePage = () => {
             />
           </p>
           <p>
-            <span className="font-semibold text-gray-800">Current Camp:</span>{" "}
+            <span className="inline-flex items-center gap-1.5 font-semibold text-gray-800">
+              <MapPin className="h-4 w-4 text-gray-400" />
+              Current Camp:
+            </span>{" "}
             {family.currentCampName ?? "Unknown camp"}
           </p>
         </div>
       </section>
 
       <section className="mt-6 rounded-lg bg-white p-6 shadow">
-        <h2 className="mb-4 text-xl font-semibold">Assistance Details</h2>
+        <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
+          <HandHeart className="h-5 w-5 text-[#0066FF]" />
+          Assistance Details
+        </h2>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="grid gap-5 md:grid-cols-2">
@@ -293,7 +331,10 @@ const AddAssistancePage = () => {
                 htmlFor="assistance-type"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Assistance Type
+                <span className="inline-flex items-center gap-1.5">
+                  <HandHeart className="h-4 w-4 text-gray-400" />
+                  Assistance Type
+                </span>
               </label>
               <select
                 id="assistance-type"
@@ -329,7 +370,10 @@ const AddAssistancePage = () => {
                 htmlFor="assistance-date"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Assistance Date
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  Assistance Date
+                </span>
               </label>
               <input
                 type="date"
@@ -359,7 +403,10 @@ const AddAssistancePage = () => {
                 htmlFor="provider-organization"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Provider Organization
+                <span className="inline-flex items-center gap-1.5">
+                  <Building2 className="h-4 w-4 text-gray-400" />
+                  Provider Organization
+                </span>
               </label>
               <input
                 type="text"
@@ -392,7 +439,10 @@ const AddAssistancePage = () => {
                 htmlFor="assistance-notes"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Notes
+                <span className="inline-flex items-center gap-1.5">
+                  <StickyNote className="h-4 w-4 text-gray-400" />
+                  Notes
+                </span>
               </label>
               <textarea
                 id="assistance-notes"
@@ -408,12 +458,14 @@ const AddAssistancePage = () => {
           </div>
 
           {formError && (
-            <p className="mt-4 text-sm text-red-600" role="alert">
+            <p className="mt-4 flex items-center gap-2 text-sm text-red-600" role="alert">
+              <AlertCircle className="h-4 w-4 shrink-0" />
               {formError}
             </p>
           )}
           {successMessage && (
-            <p className="mt-4 text-sm text-green-700" role="status">
+            <p className="mt-4 flex items-center gap-2 text-sm text-green-700" role="status">
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
               {successMessage}
             </p>
           )}
@@ -424,7 +476,14 @@ const AddAssistancePage = () => {
               disabled={isSubmitting}
               className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? "Saving..." : "Save Assistance"}
+              <span className="inline-flex items-center gap-2">
+                {isSubmitting ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {isSubmitting ? "Saving..." : "Save Assistance"}
+              </span>
             </button>
 
             <button
@@ -433,14 +492,20 @@ const AddAssistancePage = () => {
               disabled={isSubmitting}
               className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Cancel
+              <span className="inline-flex items-center gap-2">
+                <X className="h-4 w-4" />
+                Cancel
+              </span>
             </button>
           </div>
         </form>
       </section>
 
       <section className="mt-6 rounded-lg bg-white p-6 shadow">
-        <h2 className="mb-4 text-xl font-semibold">Assistance History</h2>
+        <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
+          <History className="h-5 w-5 text-[#0066FF]" />
+          Assistance History
+        </h2>
 
         {assistanceRecords.length === 0 ? (
           <div className="rounded-md border border-dashed border-gray-300 p-6 text-center text-gray-500">
