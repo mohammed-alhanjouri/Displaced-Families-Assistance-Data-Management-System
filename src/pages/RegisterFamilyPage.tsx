@@ -1,5 +1,13 @@
 import { useEffect, useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  AlertCircle,
+  CheckCircle2,
+  LoaderCircle,
+  Save,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { fetchCamps, type Camp } from "../lib/camps";
 import { createVulnerabilityAssessment } from "../lib/families";
 import { supabase } from "../lib/supabase";
@@ -15,6 +23,7 @@ import {
 } from "../features/register-family/formTypes";
 import RegisterFamilyLayout from "../layouts/RegisterFamilyLayout";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import PageHeader from "../components/ui/PageHeader";
 
 const RegisterFamilyPage = () => {
   const navigate = useNavigate();
@@ -256,7 +265,7 @@ const RegisterFamilyPage = () => {
   };
 
   const handleCancel = () => {
-    navigate("/local-search");
+    navigate("/data-entry-dashboard");
   };
 
   return (
@@ -268,9 +277,12 @@ const RegisterFamilyPage = () => {
             { label: "Register Family", href: "/register-family" },
           ]}
         />
-        <h1 className="text-2xl font-bold text-gray-800 mt-3 mb-6">
-          Register New Family
-        </h1>
+        <PageHeader
+          icon={UserPlus}
+          title="Register New Family"
+          subtitle="Create the household profile and initial vulnerability baseline."
+          className="mt-3 mb-6"
+        />
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
@@ -298,12 +310,20 @@ const RegisterFamilyPage = () => {
         />
 
         {formError && (
-          <p className="mt-4 text-sm text-red-600" role="alert">
+          <p
+            className="mt-4 flex items-center gap-2 text-sm text-red-600"
+            role="alert"
+          >
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {formError}
           </p>
         )}
         {successMessage && (
-          <p className="mt-4 text-sm text-green-700" role="status">
+          <p
+            className="mt-4 flex items-center gap-2 text-sm text-green-700"
+            role="status"
+          >
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
             {successMessage}
           </p>
         )}
@@ -314,14 +334,24 @@ const RegisterFamilyPage = () => {
             disabled={isSubmitting || isLoadingCamps || Boolean(locationError)}
             className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
           >
-            {isSubmitting ? "Saving..." : "Save Registration"}
+            <span className="inline-flex items-center gap-2">
+              {isSubmitting ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {isSubmitting ? "Saving..." : "Save Registration"}
+            </span>
           </button>
           <button
             type="button"
             onClick={handleCancel}
             className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
           >
-            Cancel
+            <span className="inline-flex items-center gap-2">
+              <X className="h-4 w-4" />
+              Cancel
+            </span>
           </button>
         </div>
       </form>
