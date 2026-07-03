@@ -1,6 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  AlertCircle,
+  ArrowRight,
+  ClipboardPlus,
+  HandHeart,
+  LayoutDashboard,
+  MapPin,
+  Search,
+  UsersRound,
+  type LucideIcon,
+} from "lucide-react";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import PageHeader from "../components/ui/PageHeader";
 import { useAuth } from "../features/auth/useAuth";
 import RegisterFamilyPageLayout from "../layouts/RegisterFamilyLayout";
 import { fetchFamilyCountByCamp } from "../lib/families";
@@ -12,6 +24,7 @@ const quickActions = [
     href: "/register-family",
     action: "Register Family",
     primary: true,
+    icon: ClipboardPlus,
   },
   {
     title: "Local Search",
@@ -19,6 +32,7 @@ const quickActions = [
     href: "/local-search",
     action: "Search Families",
     primary: false,
+    icon: Search,
   },
   {
     title: "Add Assistance",
@@ -26,8 +40,16 @@ const quickActions = [
     href: "/local-search",
     action: "Add Assistance",
     primary: false,
+    icon: HandHeart,
   },
-];
+] satisfies {
+  title: string;
+  description: string;
+  href: string;
+  action: string;
+  primary: boolean;
+  icon: LucideIcon;
+}[];
 
 const DataEntryDashboardPage = () => {
   const { user } = useAuth();
@@ -81,22 +103,31 @@ const DataEntryDashboardPage = () => {
         <Breadcrumbs
           items={[{ label: "Dashboard", href: "/data-entry-dashboard" }]}
         />
-        <h1 className="text-2xl font-bold text-gray-800 mt-3 mb-6">
-          Dashboard
-        </h1>
+        <PageHeader
+          icon={LayoutDashboard}
+          title="Dashboard"
+          subtitle="Daily workspace for camp-level family registration."
+          className="mt-3 mb-6"
+        />
       </div>
 
       {loadError && (
-        <section className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <section className="mb-6 flex gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {loadError}
         </section>
       )}
 
       <section className="grid gap-6 md:grid-cols-2">
         <div className="rounded-lg bg-white p-6 shadow-md">
-          <h2 className="text-lg font-semibold text-gray-700">
-            Families in Selected Camp
-          </h2>
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-lg font-semibold text-gray-700">
+              Families in Selected Camp
+            </h2>
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-[#0066FF]">
+              <UsersRound className="h-5 w-5" />
+            </span>
+          </div>
           <p className="mt-4 text-4xl font-bold text-[#0066FF]">
             {isLoading ? "..." : (familiesCount ?? 0)}
           </p>
@@ -106,9 +137,14 @@ const DataEntryDashboardPage = () => {
         </div>
 
         <div className="rounded-lg bg-white p-6 shadow-md">
-          <h2 className="text-lg font-semibold text-gray-700">
-            Current Work Location
-          </h2>
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-lg font-semibold text-gray-700">
+              Current Work Location
+            </h2>
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-[#0066FF]">
+              <MapPin className="h-5 w-5" />
+            </span>
+          </div>
           <p className="mt-4 text-2xl font-semibold text-gray-800">
             {user?.assignedCampName ?? "Not selected"}
           </p>
@@ -119,17 +155,24 @@ const DataEntryDashboardPage = () => {
       </section>
 
       <section className="mt-6 rounded-lg bg-white p-6 shadow-md">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-700">
+          <ArrowRight className="h-5 w-5 text-[#0066FF]" />
           Quick Actions
         </h2>
 
         <div className="grid gap-4 md:grid-cols-3">
-          {quickActions.map((action) => (
-            <div
-              key={action.title}
-              className="rounded-lg border border-gray-300 p-5"
-            >
-              <h3 className="text-base font-semibold text-gray-800">
+          {quickActions.map((action) => {
+            const Icon = action.icon;
+
+            return (
+              <div
+                key={action.title}
+                className="rounded-lg border border-gray-300 p-5"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-[#0066FF]">
+                  <Icon className="h-5 w-5" />
+                </span>
+              <h3 className="mt-4 text-base font-semibold text-gray-800">
                 {action.title}
               </h3>
               <p className="mt-2 min-h-12 text-sm text-gray-500">
@@ -137,16 +180,18 @@ const DataEntryDashboardPage = () => {
               </p>
               <Link
                 to={action.href}
-                className={`mt-5 inline-block rounded-md px-4 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 ${
+                className={`mt-5 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 ${
                   action.primary
                     ? "bg-[#0066FF] text-white hover:bg-blue-700"
                     : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
                 }`}
               >
+                <ArrowRight className="h-4 w-4" />
                 {action.action}
               </Link>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </RegisterFamilyPageLayout>
