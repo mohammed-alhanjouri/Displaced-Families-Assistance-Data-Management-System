@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import DashboardPage from "../pages/DashboardPage";
+import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import GlobalSearchPage from "../pages/GlobalSearchPage";
 import FamilyProfilePage from "../pages/FamilyProfilePage";
@@ -63,7 +64,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/logout" element={<LogoutPage />} />
       <Route path="/update-password" element={<UpdatePasswordPage />} />
