@@ -1,8 +1,23 @@
 import { useState, type ChangeEvent, type SubmitEvent } from "react";
 import { Link } from "react-router-dom";
+import {
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Filter,
+  LoaderCircle,
+  PackagePlus,
+  Phone,
+  RotateCcw,
+  Search,
+  ShieldAlert,
+  UserRound,
+} from "lucide-react";
 import VulnerabilityLevelBadge from "../components/families/VulnerabilityLevelBadge";
 import VulnerabilityLevelSelect from "../components/families/VulnerabilityLevelSelect";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import PageHeader from "../components/ui/PageHeader";
 import { useAuth } from "../features/auth/useAuth";
 import {
   fetchFamilies,
@@ -14,7 +29,7 @@ import RegisterFamilyPageLayout from "../layouts/RegisterFamilyLayout";
 
 const pageSize = 5;
 const paginationButtonClassName =
-  "rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50";
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat("en-CA", { dateStyle: "medium" }).format(
@@ -115,7 +130,12 @@ const LocalSearchPage = () => {
             { label: "Local Search", href: "/local-search" },
           ]}
         />
-        <h1 className="text-2xl font-bold text-gray-800 mt-3">Local Search</h1>
+        <PageHeader
+          icon={Search}
+          title="Local Search"
+          subtitle="Find families inside your assigned camp."
+          className="mt-3"
+        />
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -126,7 +146,10 @@ const LocalSearchPage = () => {
                 htmlFor="search"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                National ID / Family Head Name / Phone Number
+                <span className="inline-flex items-center gap-1.5">
+                  <Search className="h-4 w-4 text-gray-400" />
+                  National ID / Family Head Name / Phone Number
+                </span>
               </label>
               <input
                 type="text"
@@ -143,7 +166,10 @@ const LocalSearchPage = () => {
                 htmlFor="search-vulnerability-level"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Vulnerability Level
+                <span className="inline-flex items-center gap-1.5">
+                  <ShieldAlert className="h-4 w-4 text-gray-400" />
+                  Vulnerability Level
+                </span>
               </label>
               <VulnerabilityLevelSelect
                 id="search-vulnerability-level"
@@ -158,7 +184,14 @@ const LocalSearchPage = () => {
                   disabled={isSearching}
                   className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isSearching ? "Searching..." : "Apply"}
+                  <span className="inline-flex items-center gap-2">
+                    {isSearching ? (
+                      <LoaderCircle className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Filter className="h-4 w-4" />
+                    )}
+                    {isSearching ? "Searching..." : "Apply"}
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -166,7 +199,10 @@ const LocalSearchPage = () => {
                   disabled={isSearching}
                   className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Clear
+                  <span className="inline-flex items-center gap-2">
+                    <RotateCcw className="h-4 w-4" />
+                    Clear
+                  </span>
                 </button>
               </div>
             </div>
@@ -176,16 +212,19 @@ const LocalSearchPage = () => {
 
       {hasSubmittedSearch && (
         <div className="bg-white p-6 rounded-lg shadow-md mt-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-700">
+            <Search className="h-5 w-5 text-[#0066FF]" />
             Search Results
           </h2>
 
           {isSearching ? (
-            <p className="text-sm text-gray-600">
+            <p className="flex items-center gap-2 text-sm text-gray-600">
+              <LoaderCircle className="h-4 w-4 animate-spin" />
               Searching registered families...
             </p>
           ) : searchError ? (
-            <p className="text-sm text-red-600" role="alert">
+            <p className="flex items-center gap-2 text-sm text-red-600" role="alert">
+              <AlertCircle className="h-4 w-4 shrink-0" />
               {searchError}
             </p>
           ) : !hasAppliedFilters ? (
@@ -201,8 +240,18 @@ const LocalSearchPage = () => {
                 <thead>
                   <tr className="bg-gray-100 text-left text-sm text-gray-700">
                     <th className="py-3 px-4 border">National ID</th>
-                    <th className="py-3 px-4 border">Family Head Name</th>
-                    <th className="py-3 px-4 border">Phone</th>
+                    <th className="py-3 px-4 border">
+                      <span className="inline-flex items-center gap-1.5">
+                        <UserRound className="h-4 w-4" />
+                        Family Head Name
+                      </span>
+                    </th>
+                    <th className="py-3 px-4 border">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Phone className="h-4 w-4" />
+                        Phone
+                      </span>
+                    </th>
                     <th className="py-3 px-4 border">Vulnerability Level</th>
                     <th className="py-3 px-4 border">Last Updated</th>
                     <th className="py-3 px-4 border">Actions</th>
@@ -228,14 +277,16 @@ const LocalSearchPage = () => {
                         <div className="flex flex-wrap gap-3">
                           <Link
                             to={`/families/${family.nationalId}`}
-                            className="text-sm text-[#0066FF] hover:text-blue-700"
+                            className="inline-flex items-center gap-1.5 text-sm text-[#0066FF] hover:text-blue-700"
                           >
+                            <Eye className="h-4 w-4" />
                             View Profile
                           </Link>
                           <Link
                             to={`/add-assistance/${family.nationalId}`}
-                            className="text-sm text-[#0066FF] hover:text-blue-700"
+                            className="inline-flex items-center gap-1.5 text-sm text-[#0066FF] hover:text-blue-700"
                           >
+                            <PackagePlus className="h-4 w-4" />
                             Add Assistance
                           </Link>
                         </div>
@@ -263,6 +314,7 @@ const LocalSearchPage = () => {
               disabled={currentPage === 1}
               className={paginationButtonClassName}
             >
+              <ChevronLeft className="h-4 w-4" />
               Prev
             </button>
             {Array.from({ length: totalPages }, (_, index) => index + 1).map(
@@ -288,6 +340,7 @@ const LocalSearchPage = () => {
               className={paginationButtonClassName}
             >
               Next
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </div>
