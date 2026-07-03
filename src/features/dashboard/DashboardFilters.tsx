@@ -1,4 +1,12 @@
 import { useEffect, useState, type ChangeEvent, type SubmitEvent } from "react";
+import {
+  AlertCircle,
+  Calendar,
+  Filter,
+  LoaderCircle,
+  MapPin,
+  RotateCcw,
+} from "lucide-react";
 import { fetchCamps, type Camp } from "../../lib/camps";
 import type { DashboardStatsFilters } from "../../lib/families";
 
@@ -89,7 +97,10 @@ const DashboardFilter = ({
             htmlFor="from-date"
             className="block text-sm font-medium text-gray-800 mb-2"
           >
-            Date From (optional)
+            <span className="inline-flex items-center gap-1.5">
+              <Calendar className="h-4 w-4 text-gray-400" />
+              Date From (optional)
+            </span>
           </label>
           <input
             id="from-date"
@@ -106,7 +117,10 @@ const DashboardFilter = ({
             htmlFor="to-date"
             className="block text-sm font-medium text-gray-800 mb-2"
           >
-            Date To (optional)
+            <span className="inline-flex items-center gap-1.5">
+              <Calendar className="h-4 w-4 text-gray-400" />
+              Date To (optional)
+            </span>
           </label>
           <input
             id="to-date"
@@ -123,7 +137,10 @@ const DashboardFilter = ({
             htmlFor="search-location"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Camp / Location
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-4 w-4 text-gray-400" />
+              Camp / Location
+            </span>
           </label>
           <select
             id="search-location"
@@ -145,6 +162,7 @@ const DashboardFilter = ({
 
           {loadError && (
             <p className="mt-2 text-sm text-red-600" role="alert">
+              <AlertCircle className="mr-1 inline h-4 w-4" />
               {loadError}
             </p>
           )}
@@ -155,7 +173,14 @@ const DashboardFilter = ({
               disabled={isApplying}
               className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isApplying ? "Applying..." : "Apply"}
+              <span className="inline-flex items-center gap-2">
+                {isApplying ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Filter className="h-4 w-4" />
+                )}
+                {isApplying ? "Applying..." : "Apply"}
+              </span>
             </button>
             <button
               type="button"
@@ -163,7 +188,10 @@ const DashboardFilter = ({
               disabled={isApplying}
               className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Clear
+              <span className="inline-flex items-center gap-2">
+                <RotateCcw className="h-4 w-4" />
+                Clear
+              </span>
             </button>
           </div>
         </div>
