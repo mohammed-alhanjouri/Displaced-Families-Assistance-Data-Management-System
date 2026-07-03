@@ -1,5 +1,25 @@
 import { useEffect, useMemo, useState, type SubmitEvent } from "react";
+import {
+  AlertCircle,
+  AtSign,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Edit3,
+  KeyRound,
+  LoaderCircle,
+  MapPin,
+  RotateCcw,
+  Save,
+  ShieldCheck,
+  ToggleLeft,
+  ToggleRight,
+  UserPlus,
+  UserRound,
+  UsersRound,
+} from "lucide-react";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import PageHeader from "../components/ui/PageHeader";
 import { useAuth } from "../features/auth/useAuth";
 import DashboardLayout from "../layouts/DashboardLayout";
 import {
@@ -37,7 +57,7 @@ const primaryButtonClassName =
 const secondaryButtonClassName =
   "rounded-md border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
 const paginationButtonClassName =
-  "rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50";
 
 const UserManagementPage = () => {
   const { user: currentUser } = useAuth();
@@ -284,20 +304,31 @@ const UserManagementPage = () => {
               { label: "User Management" },
             ]}
           />
-          <h1 className="mt-3 text-2xl font-bold text-gray-800">
-            Manage User Accounts
-          </h1>
+          <PageHeader
+            icon={UsersRound}
+            title="Manage User Accounts"
+            subtitle="Create, edit, and activate role-based access."
+            className="mt-3"
+          />
         </div>
       </div>
 
       <section className="mt-6 rounded-lg border border-gray-300 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800">
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+          {isEditing ? (
+            <Edit3 className="h-5 w-5 text-[#0066FF]" />
+          ) : (
+            <UserPlus className="h-5 w-5 text-[#0066FF]" />
+          )}
           {isEditing ? "Edit User" : "Add New User"}
         </h2>
         <form onSubmit={handleSubmit} className="mt-5" aria-busy={isSaving}>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block text-sm font-medium text-gray-700">
-              Full Name
+              <span className="inline-flex items-center gap-1.5">
+                <UserRound className="h-4 w-4 text-gray-400" />
+                Full Name
+              </span>
               <input
                 type="text"
                 value={form.fullName}
@@ -309,7 +340,10 @@ const UserManagementPage = () => {
             </label>
 
             <label className="block text-sm font-medium text-gray-700">
-              Email
+              <span className="inline-flex items-center gap-1.5">
+                <AtSign className="h-4 w-4 text-gray-400" />
+                Email
+              </span>
               <input
                 type="email"
                 value={form.email}
@@ -321,7 +355,10 @@ const UserManagementPage = () => {
             </label>
 
             <label className="block text-sm font-medium text-gray-700">
-              Username
+              <span className="inline-flex items-center gap-1.5">
+                <UserRound className="h-4 w-4 text-gray-400" />
+                Username
+              </span>
               <input
                 type="text"
                 value={form.username}
@@ -333,7 +370,10 @@ const UserManagementPage = () => {
             </label>
 
             <label className="block text-sm font-medium text-gray-700">
-              {isEditing ? "New Password" : "Password"}
+              <span className="inline-flex items-center gap-1.5">
+                <KeyRound className="h-4 w-4 text-gray-400" />
+                {isEditing ? "New Password" : "Password"}
+              </span>
               <input
                 type="password"
                 value={form.password ?? ""}
@@ -346,7 +386,10 @@ const UserManagementPage = () => {
             </label>
 
             <label className="block text-sm font-medium text-gray-700">
-              Role
+              <span className="inline-flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-gray-400" />
+                Role
+              </span>
               <select
                 value={form.role}
                 onChange={(event) =>
@@ -364,7 +407,10 @@ const UserManagementPage = () => {
             </label>
 
             <label className="block text-sm font-medium text-gray-700">
-              Assigned Camp
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="h-4 w-4 text-gray-400" />
+                Assigned Camp
+              </span>
               <select
                 value={form.assignedCampId ?? ""}
                 onChange={(event) =>
@@ -386,12 +432,14 @@ const UserManagementPage = () => {
           </div>
 
           {formError && (
-            <p className="mt-4 text-sm text-red-600" role="alert">
+            <p className="mt-4 flex items-center gap-2 text-sm text-red-600" role="alert">
+              <AlertCircle className="h-4 w-4 shrink-0" />
               {formError}
             </p>
           )}
           {message && (
-            <p className="mt-4 text-sm text-green-700" role="status">
+            <p className="mt-4 flex items-center gap-2 text-sm text-green-700" role="status">
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
               {message}
             </p>
           )}
@@ -402,7 +450,14 @@ const UserManagementPage = () => {
               disabled={isSaving}
               className={primaryButtonClassName}
             >
-              {isSaving ? "Saving..." : "Save"}
+              <span className="inline-flex items-center gap-2">
+                {isSaving ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {isSaving ? "Saving..." : "Save"}
+              </span>
             </button>
             <button
               type="button"
@@ -410,7 +465,10 @@ const UserManagementPage = () => {
               disabled={isSaving}
               className={secondaryButtonClassName}
             >
-              Cancel
+              <span className="inline-flex items-center gap-2">
+                <RotateCcw className="h-4 w-4" />
+                Cancel
+              </span>
             </button>
           </div>
         </form>
@@ -418,9 +476,13 @@ const UserManagementPage = () => {
 
       <section className="mt-6 rounded-lg border border-gray-300 bg-white p-5 shadow-sm">
         {isLoading ? (
-          <p className="text-sm font-medium text-gray-600">Loading users...</p>
+          <p className="flex items-center gap-2 text-sm font-medium text-gray-600">
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+            Loading users...
+          </p>
         ) : loadError ? (
-          <p className="text-sm text-red-600" role="alert">
+          <p className="flex items-center gap-2 text-sm text-red-600" role="alert">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {loadError}
           </p>
         ) : users.length === 0 ? (
@@ -490,7 +552,10 @@ const UserManagementPage = () => {
                               onClick={() => handleEdit(account)}
                               className="font-medium text-[#0066FF] underline hover:text-blue-700"
                             >
-                              Edit
+                      <span className="inline-flex items-center gap-1.5">
+                        <Edit3 className="h-4 w-4" />
+                        Edit
+                      </span>
                             </button>
                             <button
                               type="button"
@@ -501,9 +566,18 @@ const UserManagementPage = () => {
                               }
                               className="font-medium text-[#0066FF] underline hover:text-blue-700 disabled:cursor-not-allowed disabled:text-gray-400"
                             >
-                              {isStatusLoading
-                                ? "Updating..."
-                                : nextStatusLabel}
+                              <span className="inline-flex items-center gap-1.5">
+                                {isStatusLoading ? (
+                                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                                ) : account.status === "active" ? (
+                                  <ToggleLeft className="h-4 w-4" />
+                                ) : (
+                                  <ToggleRight className="h-4 w-4" />
+                                )}
+                                {isStatusLoading
+                                  ? "Updating..."
+                                  : nextStatusLabel}
+                              </span>
                             </button>
                           </div>
                         </td>
@@ -521,6 +595,7 @@ const UserManagementPage = () => {
                 disabled={currentPage === 1}
                 className={paginationButtonClassName}
               >
+                <ChevronLeft className="h-4 w-4" />
                 Prev
               </button>
               {Array.from({ length: totalPages }, (_, index) => index + 1).map(
@@ -548,6 +623,7 @@ const UserManagementPage = () => {
                 className={paginationButtonClassName}
               >
                 Next
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </>
