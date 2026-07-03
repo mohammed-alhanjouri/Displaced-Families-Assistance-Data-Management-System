@@ -1,5 +1,14 @@
 // Header navigation component
 
+import {
+  LogIn,
+  MapPin,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import logo from "../../assets/LOGO.png";
+
 interface HeaderNavProps {
   user: {
     name: string;
@@ -10,45 +19,51 @@ interface HeaderNavProps {
 
 const HeaderNav = ({ user }: HeaderNavProps) => {
   return (
-    <header className="sticky top-0 z-10 w-full border-b border-gray-300 bg-white rounded-lg shadow-sm py-3">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-2 md:flex-row md:items-center md:justify-between">
-        <div className="text-lg font-bold text-gray-800 md:text-xl">
-          Displaced Families Assistance and Data Management System
+    <header className="sticky top-0 z-10 w-full border-b border-gray-200 bg-white shadow-sm">
+      <div className="mx-auto flex min-h-[88px] max-w-7xl flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <img
+            src={logo}
+            alt="Awn logo"
+            className="h-11 w-11 shrink-0 rounded-xl object-contain ring-1 ring-blue-100"
+          />
+          <div className="min-w-0">
+            <div className="text-lg font-bold text-gray-900 md:text-xl">
+              Awn عَــــون
+            </div>
+            <div className="truncate text-xs font-medium text-gray-500 md:text-sm">
+              Displaced Families Assistance and Data Management System
+            </div>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-4">
           {user ? (
             <>
-              <span className="text-sm text-gray-600">
-                User:
-                <span className="font-semibold text-[#0066FF]">
-                  {" "}
-                  {user.name}
-                </span>{" "}
+              <span className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                <UserRound className="h-4 w-4 text-[#0066FF]" />
+                <span className="font-semibold text-gray-900">{user.name}</span>
               </span>
-              <span className="text-sm text-gray-600">
-                Role:
-                <span className="font-semibold text-[#0066FF]">
-                  {" "}
-                  {user.role}
-                </span>
+              <span className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                <ShieldCheck className="h-4 w-4 text-[#0066FF]" />
+                <span className="font-semibold text-gray-900">{user.role}</span>
               </span>
               {user.location && (
-                <span className="text-sm text-gray-600">
-                  Location:
-                  <span className="font-semibold text-[#0066FF]">
-                    {" "}
+                <span className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                  <MapPin className="h-4 w-4 text-[#0066FF]" />
+                  <span className="font-semibold text-gray-900">
                     {user.location}
                   </span>
                 </span>
               )}
             </>
           ) : (
-            <a
-              href="/login"
-              className="text-sm text-[#0066FF] hover:text-blue-700"
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
             >
+              <LogIn className="h-4 w-4" />
               Login
-            </a>
+            </Link>
           )}
         </div>
       </div>
