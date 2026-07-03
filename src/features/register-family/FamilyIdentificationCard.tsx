@@ -1,3 +1,4 @@
+import { Contact, Hash, Phone, UserRound } from "lucide-react";
 import type {
   FamilyRegistrationChangeHandler,
   FamilyRegistrationErrors,
@@ -29,14 +30,22 @@ const FamilyIdentificationCard = ({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">
-      <h2 className="text-lg font-semibold mb-4">Family Identification</h2>
+      <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-[#0066FF]">
+          <Contact className="h-5 w-5" />
+        </span>
+        Family Identification
+      </h2>
       <div className="grid gap-6 md:grid-cols-2">
         <div>
           <label
             htmlFor="nationalID"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            National ID *
+            <span className="inline-flex items-center gap-1.5">
+              <Hash className="h-4 w-4 text-gray-400" />
+              National ID *
+            </span>
           </label>
           <input
             type="text"
@@ -81,7 +90,10 @@ const FamilyIdentificationCard = ({
             htmlFor="familyHeadName"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Family Head Name *
+            <span className="inline-flex items-center gap-1.5">
+              <UserRound className="h-4 w-4 text-gray-400" />
+              Family Head Name *
+            </span>
           </label>
           <input
             type="text"
@@ -110,7 +122,10 @@ const FamilyIdentificationCard = ({
             htmlFor="phoneNumber"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Phone Number *
+            <span className="inline-flex items-center gap-1.5">
+              <Phone className="h-4 w-4 text-gray-400" />
+              Phone Number *
+            </span>
           </label>
           <input
             type="tel"
