@@ -1,4 +1,5 @@
 // Import the real Camp type from
+import { Building2, MapPin, MapPinned } from "lucide-react";
 import type { Camp } from "../../lib/camps";
 import type {
   FamilyRegistrationChangeHandler,
@@ -39,14 +40,22 @@ const LocationInformationCard = ({
 
   return (
     <div className="bg-white p-6 rounded-lg shadow mt-6">
-      <h2 className="text-lg font-semibold mb-4">Location Information</h2>
+      <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-[#0066FF]">
+          <MapPinned className="h-5 w-5" />
+        </span>
+        Location Information
+      </h2>
       <div className="grid gap-6 md:grid-cols-2">
         <div>
           <label
             htmlFor="currentLocation"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Current Camp / Location
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-4 w-4 text-gray-400" />
+              Current Camp / Location
+            </span>
           </label>
           <select
             id="currentLocation"
@@ -84,7 +93,10 @@ const LocationInformationCard = ({
             htmlFor="originalResidenceGovernorate"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Original Residence Governorate
+            <span className="inline-flex items-center gap-1.5">
+              <Building2 className="h-4 w-4 text-gray-400" />
+              Original Residence Governorate
+            </span>
           </label>
           {/* Selected governorate comes from the form values, options come from the citiesByGovernorate mapping */}
           <select
@@ -125,7 +137,10 @@ const LocationInformationCard = ({
             htmlFor="originalResidenceCity"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Original Residence City
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-4 w-4 text-gray-400" />
+              Original Residence City
+            </span>
           </label>
           {/* City options come from the selected governorate only */}
           <select
