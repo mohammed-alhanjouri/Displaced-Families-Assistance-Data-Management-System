@@ -1,3 +1,4 @@
+import { UsersRound, Venus } from "lucide-react";
 import Checkbox from "../../components/ui/Checkbox";
 import type {
   FamilyRegistrationChangeHandler,
@@ -20,14 +21,22 @@ const HouseholdInformationCard = ({
 }: HouseholdInformationCardProps) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow mt-6">
-      <h2 className="text-lg font-semibold mb-4">Household Information</h2>
+      <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-[#0066FF]">
+          <UsersRound className="h-5 w-5" />
+        </span>
+        Household Information
+      </h2>
       <div className="grid gap-6 md:grid-cols-2">
         <div>
           <label
             htmlFor="totalMembers"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Total Members *
+            <span className="inline-flex items-center gap-1.5">
+              <UsersRound className="h-4 w-4 text-gray-400" />
+              Total Members *
+            </span>
           </label>
           <input
             type="number"
@@ -65,7 +74,10 @@ const HouseholdInformationCard = ({
               htmlFor="femaleHeadReason"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Female Head Reason
+              <span className="inline-flex items-center gap-1.5">
+                <Venus className="h-4 w-4 text-gray-400" />
+                Female Head Reason
+              </span>
             </label>
             <input
               type="text"
