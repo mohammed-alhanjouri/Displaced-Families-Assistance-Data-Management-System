@@ -1,5 +1,14 @@
 import { useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  AlertCircle,
+  CheckCircle2,
+  KeyRound,
+  LoaderCircle,
+  LogIn,
+  ShieldCheck,
+} from "lucide-react";
+import logo from "../assets/LOGO.png";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
@@ -47,16 +56,25 @@ const UpdatePasswordPage = () => {
     <main className="flex min-h-screen items-center justify-center px-4 py-10 lg:px-8">
       <Card className="flex w-full max-w-md flex-col justify-center">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h1 className="text-center text-2xl/9 font-bold tracking-tight text-gray-800">
-            Update password
+          <img
+            src={logo}
+            alt="Awn logo"
+            className="mx-auto h-14 w-14 rounded-xl object-contain ring-1 ring-blue-100"
+          />
+          <h1 className="mt-4 flex items-center justify-center gap-2 text-center text-2xl/9 font-bold tracking-tight text-gray-800">
+            <ShieldCheck className="h-6 w-6 text-[#0066FF]" />
+            Update Password
           </h1>
         </div>
 
         <div className="mt-5 sm:mx-auto sm:w-full sm:max-w-sm">
           {successMessage ? (
             <div className="space-y-6">
-              <p className="text-sm text-green-700">{successMessage}</p>
-              <Button type="button" onClick={() => navigate("/login")}>
+              <p className="flex items-center gap-2 text-sm text-green-700">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                {successMessage}
+              </p>
+              <Button type="button" onClick={() => navigate("/login")} icon={LogIn}>
                 Back to sign in
               </Button>
             </div>
@@ -67,7 +85,10 @@ const UpdatePasswordPage = () => {
                   htmlFor="new-password"
                   className="block text-sm/6 font-medium text-gray-800"
                 >
-                  New Password
+                  <span className="inline-flex items-center gap-1.5">
+                    <KeyRound className="h-4 w-4 text-gray-400" />
+                    New Password
+                  </span>
                 </label>
                 <Input
                   id="new-password"
@@ -86,7 +107,10 @@ const UpdatePasswordPage = () => {
                   htmlFor="confirm-password"
                   className="block text-sm/6 font-medium text-gray-800"
                 >
-                  Confirm Password
+                  <span className="inline-flex items-center gap-1.5">
+                    <KeyRound className="h-4 w-4 text-gray-400" />
+                    Confirm Password
+                  </span>
                 </label>
                 <Input
                   id="confirm-password"
@@ -101,10 +125,17 @@ const UpdatePasswordPage = () => {
               </div>
 
               {errorMessage && (
-                <p className="text-sm text-red-600">{errorMessage}</p>
+                <p className="flex items-center gap-2 text-sm text-red-600">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  {errorMessage}
+                </p>
               )}
 
-              <Button type="submit" disabled={loading}>
+              <Button
+                type="submit"
+                disabled={loading}
+                icon={loading ? LoaderCircle : ShieldCheck}
+              >
                 {loading ? "Updating..." : "Update password"}
               </Button>
             </form>
