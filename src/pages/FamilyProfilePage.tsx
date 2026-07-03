@@ -1,7 +1,24 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
+import {
+  AlertCircle,
+  ArrowLeft,
+  CheckCircle2,
+  Download,
+  History,
+  LoaderCircle,
+  MapPin,
+  PackagePlus,
+  Pencil,
+  Phone,
+  Search,
+  ShieldCheck,
+  UserRound,
+  UsersRound,
+} from "lucide-react";
 import VulnerabilityLevelBadge from "../components/families/VulnerabilityLevelBadge";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import PageHeader from "../components/ui/PageHeader";
 import { useAuth } from "../features/auth/useAuth";
 import {
   calculateInitialVulnerability,
@@ -191,7 +208,10 @@ const FamilyProfilePage = () => {
   if (isLoading) {
     return (
       <Layout>
-        <p className="text-sm text-gray-600">Loading family profile...</p>
+        <p className="flex items-center gap-2 text-sm text-gray-600">
+          <LoaderCircle className="h-4 w-4 animate-spin" />
+          Loading family profile...
+        </p>
       </Layout>
     );
   }
@@ -200,14 +220,16 @@ const FamilyProfilePage = () => {
     return (
       <Layout>
         <div className="rounded-lg bg-white p-6 shadow">
-          <h1 className="text-2xl font-bold text-gray-800">Family Not Found</h1>
-          <p className="mt-3 text-sm text-red-600" role="alert">
+          <PageHeader icon={AlertCircle} title="Family Not Found" />
+          <p className="mt-3 flex items-center gap-2 text-sm text-red-600" role="alert">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {loadError || "No family found with the provided National ID."}
           </p>
           <Link
             to={searchPath}
-            className="mt-5 inline-block rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            className="mt-5 inline-flex items-center gap-2 rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
           >
+            <ArrowLeft className="h-4 w-4" />
             Back to {searchLabel}
           </Link>
         </div>
@@ -232,39 +254,46 @@ const FamilyProfilePage = () => {
               { label: "Family Profile" },
             ]}
           />
-          <h1 className="text-2xl font-bold text-gray-800 mt-3">
-            Family Profile
-          </h1>
+          <PageHeader
+            icon={UserRound}
+            title="Family Profile"
+            subtitle={family.familyHeadName}
+            className="mt-3"
+          />
         </div>
         <div className="flex flex-wrap gap-3">
           {isDataEntryUser && (
             <Link
               to={`/update-family/${family.nationalId}`}
-              className="rounded-md border border-[#0066FF] bg-white px-4 py-2 text-sm font-medium text-[#0066FF] hover:bg-blue-50"
+              className="inline-flex items-center gap-2 rounded-md border border-[#0066FF] bg-white px-4 py-2 text-sm font-medium text-[#0066FF] hover:bg-blue-50"
             >
+              <Pencil className="h-4 w-4" />
               Update Family
             </Link>
           )}
           {isDataEntryUser && (
             <Link
               to={`/vulnerability-assessment/${family.nationalId}`}
-              className="rounded-md border border-[#0066FF] bg-white px-4 py-2 text-sm font-medium text-[#0066FF] hover:bg-blue-50"
+              className="inline-flex items-center gap-2 rounded-md border border-[#0066FF] bg-white px-4 py-2 text-sm font-medium text-[#0066FF] hover:bg-blue-50"
             >
+              <ShieldCheck className="h-4 w-4" />
               Assess Vulnerability
             </Link>
           )}
           {isDataEntryUser && (
             <Link
               to={`/add-assistance/${family.nationalId}`}
-              className="rounded-md border border-[#0066FF] bg-white px-4 py-2 text-sm font-medium text-[#0066FF] hover:bg-blue-50"
+              className="inline-flex items-center gap-2 rounded-md border border-[#0066FF] bg-white px-4 py-2 text-sm font-medium text-[#0066FF] hover:bg-blue-50"
             >
+              <PackagePlus className="h-4 w-4" />
               Add Assistance
             </Link>
           )}
           <Link
             to={searchPath}
-            className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="inline-flex items-center gap-2 rounded-md bg-[#0066FF] px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
+            <Search className="h-4 w-4" />
             Back to Search
           </Link>
         </div>
@@ -272,16 +301,18 @@ const FamilyProfilePage = () => {
 
       {successMessage && (
         <p
-          className="mb-6 rounded-md bg-green-50 px-4 py-3 text-sm text-green-800"
+          className="mb-6 flex items-center gap-2 rounded-md bg-green-50 px-4 py-3 text-sm text-green-800"
           role="status"
         >
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
           {successMessage}
         </p>
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="space-y-3 bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
+            <UserRound className="h-5 w-5 text-[#0066FF]" />
             Family Information
           </h2>
           <div className="space-y-3">
@@ -291,19 +322,28 @@ const FamilyProfilePage = () => {
             </p>
             <p>
               <span className="font-semibold text-gray-800">
-                Family Head Name:
+                <span className="inline-flex items-center gap-1.5">
+                  <UserRound className="h-4 w-4 text-gray-400" />
+                  Family Head Name:
+                </span>
               </span>{" "}
               {family.familyHeadName}
             </p>
             <p>
               <span className="font-semibold text-gray-800">
-                Phone Number:
+                <span className="inline-flex items-center gap-1.5">
+                  <Phone className="h-4 w-4 text-gray-400" />
+                  Phone Number:
+                </span>
               </span>{" "}
               {family.phoneNumber}
             </p>
             <p>
               <span className="font-semibold text-gray-800">
-                Total Members:
+                <span className="inline-flex items-center gap-1.5">
+                  <UsersRound className="h-4 w-4 text-gray-400" />
+                  Total Members:
+                </span>
               </span>{" "}
               {family.totalMembers}
             </p>
@@ -323,13 +363,17 @@ const FamilyProfilePage = () => {
         </section>
 
         <section className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
+            <MapPin className="h-5 w-5 text-[#0066FF]" />
             Location and Vulnerability
           </h2>
           <div className="space-y-3">
             <p>
               <span className="font-semibold text-gray-800">
-                Current Camp / Location:
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4 text-gray-400" />
+                  Current Camp / Location:
+                </span>
               </span>{" "}
               {family.currentCampName ?? "Unknown camp"}
             </p>
@@ -382,7 +426,14 @@ const FamilyProfilePage = () => {
                 role="tab"
                 onClick={() => setActiveTab(tab.id)}
               >
-                {tab.label}
+                  <span className="inline-flex items-center gap-2">
+                    {tab.id === "familyMembers" ? (
+                      <UsersRound className="h-4 w-4" />
+                    ) : (
+                      <History className="h-4 w-4" />
+                    )}
+                    {tab.label}
+                  </span>
               </button>
             );
           })}
@@ -396,6 +447,7 @@ const FamilyProfilePage = () => {
               role="tabpanel"
             >
               <div className="rounded-md border border-dashed border-gray-300 p-6 text-center text-gray-500">
+                <UsersRound className="mx-auto mb-2 h-6 w-6 text-gray-400" />
                 No family members information available.
               </div>
             </div>
@@ -407,6 +459,7 @@ const FamilyProfilePage = () => {
             >
               {assistanceRecords.length === 0 ? (
                 <div className="rounded-md border border-dashed border-gray-300 p-6 text-center text-gray-500">
+                  <History className="mx-auto mb-2 h-6 w-6 text-gray-400" />
                   No assistance history available.
                 </div>
               ) : (
@@ -456,8 +509,9 @@ const FamilyProfilePage = () => {
                 <button
                   type="button"
                   onClick={handleExportAssistanceHistory}
-                  className="rounded-md border border-gray-400 bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+                  className="inline-flex items-center gap-2 rounded-md border border-gray-400 bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
                 >
+                  <Download className="h-4 w-4" />
                   Export Assistance History (PDF)
                 </button>
               </div>
