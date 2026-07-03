@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+  BarChart3,
+  Clock3,
+  LayoutDashboard,
+  MapPinned,
+  PieChart,
+} from "lucide-react";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import PageHeader from "../components/ui/PageHeader";
 import { useAuth } from "../features/auth/useAuth";
 import ChartsCard from "../features/dashboard/ChartsCards";
 import DashboardFilter from "../features/dashboard/DashboardFilters";
@@ -40,8 +48,9 @@ const formatDate = (value: string) =>
   );
 
 const ChartMessage = ({ children }: { children: string }) => (
-  <div className="flex min-h-52 items-center justify-center rounded-md border border-dashed border-gray-300 bg-white px-4 text-center text-sm text-gray-500">
-    {children}
+  <div className="flex min-h-52 flex-col items-center justify-center gap-2 rounded-md border border-dashed border-gray-300 bg-white px-4 text-center text-sm text-gray-500">
+    <BarChart3 className="h-5 w-5 text-gray-400" />
+    <span>{children}</span>
   </div>
 );
 
@@ -174,7 +183,10 @@ const RecentAssistanceLog = ({
 
   return (
     <section className="mt-6 rounded-lg border border-gray-300 bg-white p-5 shadow-sm">
-      <h2 className="mb-4 text-sm font-semibold text-gray-800">
+      <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-800">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-[#0066FF]">
+          <Clock3 className="h-4 w-4" />
+        </span>
         Recent Assistance Logs
       </h2>
       {records.length === 0 ? (
@@ -292,12 +304,15 @@ const OrganizationDashboardPage = () => {
 
   return (
     <DashboardLayout>
-      <div>
-        <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }]} />
-        <h1 className="text-2xl font-bold text-gray-800 mt-3 mb-6">
-          Dashboard
-        </h1>
-      </div>
+        <div>
+          <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }]} />
+          <PageHeader
+            icon={LayoutDashboard}
+            title="Dashboard"
+            subtitle="Operational overview for registered families and assistance."
+            className="mt-3 mb-6"
+          />
+        </div>
       <DashboardFilter
         isApplying={isFilterActionLoading}
         onApply={handleApplyFilters}
@@ -317,6 +332,7 @@ const OrganizationDashboardPage = () => {
           <section className="mt-6 grid gap-6 lg:grid-cols-2">
             <ChartsCard
               title="Families per Location"
+              icon={MapPinned}
               chart={
                 <FamiliesByCampChart
                   data={dashboardInsights.familiesByCamp}
@@ -326,6 +342,7 @@ const OrganizationDashboardPage = () => {
             />
             <ChartsCard
               title="Vulnerability Distribution"
+              icon={PieChart}
               chart={
                 <VulnerabilityDistributionChart
                   data={dashboardInsights.vulnerabilityDistribution}
