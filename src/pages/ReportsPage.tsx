@@ -5,9 +5,25 @@ import {
   type ChangeEvent,
   type SubmitEvent,
 } from "react";
+import {
+  AlertCircle,
+  BarChart3,
+  Calendar,
+  Download,
+  FileText,
+  Filter,
+  HandHeart,
+  LoaderCircle,
+  MapPin,
+  RotateCcw,
+  ShieldAlert,
+  UsersRound,
+  type LucideIcon,
+} from "lucide-react";
 import VulnerabilityLevelBadge from "../components/families/VulnerabilityLevelBadge";
 import { vulnerabilityLevels } from "../components/families/vulnerabilityLevel";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import PageHeader from "../components/ui/PageHeader";
 import { fetchCamps, type Camp } from "../lib/camps";
 import {
   fetchReportsData,
@@ -39,6 +55,13 @@ const reportTypeLabels: Record<ReportsReportType, string> = {
   "vulnerability-levels": "Families by Vulnerability Level",
   "assistance-types": "Assistance by Type",
   "assistance-history": "Detailed Family Assistance History",
+};
+
+const reportTypeIcons: Record<ReportsReportType, LucideIcon> = {
+  "families-by-location": MapPin,
+  "vulnerability-levels": ShieldAlert,
+  "assistance-types": HandHeart,
+  "assistance-history": FileText,
 };
 
 const reportTypeOptions = Object.entries(reportTypeLabels).map(
@@ -103,32 +126,50 @@ const getFilterSummary = (report: GeneratedReport) => {
 
 const SummaryCards = ({ summary }: { summary: ReportSummary }) => {
   const cards = [
-    { label: "Families", value: summary.totalFamilies },
-    { label: "Persons", value: summary.totalPersons },
-    { label: "High Vulnerability", value: summary.highVulnerabilityFamilies },
-    { label: "Assistance Records", value: summary.totalAssistanceRecords },
+    { label: "Families", value: summary.totalFamilies, icon: UsersRound },
+    { label: "Persons", value: summary.totalPersons, icon: UsersRound },
+    {
+      label: "High Vulnerability",
+      value: summary.highVulnerabilityFamilies,
+      icon: ShieldAlert,
+    },
+    {
+      label: "Assistance Records",
+      value: summary.totalAssistanceRecords,
+      icon: HandHeart,
+    },
   ];
 
   return (
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {cards.map((card) => (
-        <div
-          key={card.label}
-          className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm"
-        >
-          <h3 className="text-sm font-medium text-gray-600">{card.label}</h3>
-          <p className="mt-2 text-2xl font-semibold text-[#0066FF]">
-            {card.value}
-          </p>
-        </div>
-      ))}
+      {cards.map((card) => {
+        const Icon = card.icon;
+
+        return (
+          <div
+            key={card.label}
+            className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="text-sm font-medium text-gray-600">{card.label}</h3>
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-[#0066FF]">
+                <Icon className="h-4 w-4" />
+              </span>
+            </div>
+            <p className="mt-2 text-2xl font-semibold text-[#0066FF]">
+              {card.value}
+            </p>
+          </div>
+        );
+      })}
     </section>
   );
 };
 
 const EmptyTableState = ({ message }: { message: string }) => (
   <div className="rounded-md border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
-    {message}
+    <FileText className="mx-auto mb-2 h-6 w-6 text-gray-400" />
+    <p>{message}</p>
   </div>
 );
 
@@ -597,17 +638,25 @@ const ReportsPage = () => {
     printWindow.print();
   };
 
+  const GeneratedReportIcon = generatedReport
+    ? reportTypeIcons[generatedReport.reportType]
+    : FileText;
+
   return (
     <DashboardLayout>
       <div>
         <Breadcrumbs items={[{ label: "Reports", href: "/reports" }]} />
-        <h1 className="mt-3 mb-6 text-2xl font-bold text-gray-800">
-          Generate Reports
-        </h1>
+        <PageHeader
+          icon={FileText}
+          title="Generate Reports"
+          subtitle="Build filtered operational reports for planning and export."
+          className="mt-3 mb-6"
+        />
       </div>
 
       <section className="rounded-lg border border-gray-300 bg-white p-5 shadow-sm">
-        <h2 className="mb-4 text-xl font-semibold text-gray-800">
+        <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-800">
+          <BarChart3 className="h-5 w-5 text-[#0066FF]" />
           Report Configuration
         </h2>
         <form onSubmit={handleGenerateReport} aria-busy={isGeneratingReport}>
@@ -617,7 +666,10 @@ const ReportsPage = () => {
                 htmlFor="report-type"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Report Type
+                <span className="inline-flex items-center gap-1.5">
+                  <FileText className="h-4 w-4 text-gray-400" />
+                  Report Type
+                </span>
               </label>
               <select
                 id="report-type"
@@ -640,7 +692,10 @@ const ReportsPage = () => {
                 htmlFor="report-camp"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Camp / Location
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4 text-gray-400" />
+                  Camp / Location
+                </span>
               </label>
               <select
                 id="report-camp"
@@ -661,6 +716,7 @@ const ReportsPage = () => {
               </select>
               {campLoadError && (
                 <p className="mt-2 text-sm text-red-600" role="alert">
+                  <AlertCircle className="mr-1 inline h-4 w-4" />
                   {campLoadError}
                 </p>
               )}
@@ -671,7 +727,10 @@ const ReportsPage = () => {
                 htmlFor="report-vulnerability"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Vulnerability Level
+                <span className="inline-flex items-center gap-1.5">
+                  <ShieldAlert className="h-4 w-4 text-gray-400" />
+                  Vulnerability Level
+                </span>
               </label>
               <select
                 id="report-vulnerability"
@@ -694,7 +753,10 @@ const ReportsPage = () => {
                 htmlFor="report-assistance-type"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Assistance Type
+                <span className="inline-flex items-center gap-1.5">
+                  <HandHeart className="h-4 w-4 text-gray-400" />
+                  Assistance Type
+                </span>
               </label>
               <select
                 id="report-assistance-type"
@@ -717,7 +779,10 @@ const ReportsPage = () => {
                 htmlFor="from-date"
                 className="mb-2 block text-sm font-medium text-gray-800"
               >
-                Date From
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  Date From
+                </span>
               </label>
               <input
                 id="from-date"
@@ -734,7 +799,10 @@ const ReportsPage = () => {
                 htmlFor="to-date"
                 className="mb-2 block text-sm font-medium text-gray-800"
               >
-                Date To
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  Date To
+                </span>
               </label>
               <input
                 id="to-date"
@@ -748,7 +816,8 @@ const ReportsPage = () => {
           </div>
 
           {formError && (
-            <p className="mt-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+            <p className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+              <AlertCircle className="h-4 w-4 shrink-0" />
               {formError}
             </p>
           )}
@@ -759,7 +828,14 @@ const ReportsPage = () => {
               disabled={isGeneratingReport}
               className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isGeneratingReport ? "Generating..." : "Generate Report"}
+              <span className="inline-flex items-center gap-2">
+                {isGeneratingReport ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Filter className="h-4 w-4" />
+                )}
+                {isGeneratingReport ? "Generating..." : "Generate Report"}
+              </span>
             </button>
 
             <button
@@ -768,7 +844,10 @@ const ReportsPage = () => {
               disabled={isGeneratingReport}
               className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Reset
+              <span className="inline-flex items-center gap-2">
+                <RotateCcw className="h-4 w-4" />
+                Reset
+              </span>
             </button>
           </div>
         </form>
@@ -779,6 +858,7 @@ const ReportsPage = () => {
           <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 className="text-xl font-semibold text-gray-800">
+                <GeneratedReportIcon className="mr-2 inline h-5 w-5 text-[#0066FF]" />
                 {reportTypeLabels[generatedReport.reportType]}
               </h2>
               <p className="mt-2 text-sm text-gray-600">
@@ -791,8 +871,9 @@ const ReportsPage = () => {
             <button
               type="button"
               onClick={handleExportPdf}
-              className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+              className="inline-flex items-center gap-2 rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
             >
+              <Download className="h-4 w-4" />
               Export as PDF
             </button>
           </div>
