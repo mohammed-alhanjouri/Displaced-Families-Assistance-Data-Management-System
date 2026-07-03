@@ -1,5 +1,13 @@
 import { useEffect, useState, type SubmitEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  AlertCircle,
+  ArrowLeft,
+  LoaderCircle,
+  Pencil,
+  Save,
+  X,
+} from "lucide-react";
 import { fetchCamps, type Camp } from "../lib/camps";
 import {
   fetchFamilyByNationalId,
@@ -10,6 +18,7 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../features/auth/useAuth";
 import RegisterFamilyPageLayout from "../layouts/RegisterFamilyLayout";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import PageHeader from "../components/ui/PageHeader";
 import FamilyIdentificationCard from "../features/register-family/FamilyIdentificationCard";
 import HouseholdInformationCard from "../features/register-family/HouseholdInformationCard";
 import LocationInformationCard from "../features/register-family/LocationInformationCard";
@@ -286,17 +295,17 @@ const UpdateFamilyInformation = () => {
     return (
       <RegisterFamilyPageLayout>
         <div className="rounded-lg bg-white p-6 shadow">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Unable to Update Family
-          </h1>
-          <p className="mt-3 text-sm text-red-600" role="alert">
+          <PageHeader icon={AlertCircle} title="Unable to Update Family" />
+          <p className="mt-3 flex items-center gap-2 text-sm text-red-600" role="alert">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {loadError}
           </p>
           <button
             type="button"
             onClick={() => navigate("/local-search")}
-            className="mt-5 rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
+            className="mt-5 inline-flex items-center gap-2 rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
           >
+            <ArrowLeft className="h-4 w-4" />
             Back to Local Search
           </button>
         </div>
@@ -317,9 +326,12 @@ const UpdateFamilyInformation = () => {
             },
           ]}
         />
-        <h1 className="text-2xl font-bold text-gray-800 mt-3 mb-6">
-          Update Family Information
-        </h1>
+        <PageHeader
+          icon={Pencil}
+          title="Update Family Information"
+          subtitle="Edit registration details for the selected household."
+          className="mt-3 mb-6"
+        />
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
@@ -347,7 +359,8 @@ const UpdateFamilyInformation = () => {
         />
 
         {formError && (
-          <p className="mt-4 text-sm text-red-600" role="alert">
+          <p className="mt-4 flex items-center gap-2 text-sm text-red-600" role="alert">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {formError}
           </p>
         )}
@@ -358,7 +371,14 @@ const UpdateFamilyInformation = () => {
             disabled={isSubmitting || isLoadingCamps || Boolean(locationError)}
             className="rounded-md bg-[#0066FF] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
+            <span className="inline-flex items-center gap-2">
+              {isSubmitting ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
             {isSubmitting ? "Saving..." : "Save Changes"}
+            </span>
           </button>
           <button
             type="button"
@@ -366,7 +386,10 @@ const UpdateFamilyInformation = () => {
             disabled={isSubmitting}
             className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
+            <span className="inline-flex items-center gap-2">
+              <X className="h-4 w-4" />
             Cancel
+            </span>
           </button>
         </div>
       </form>
