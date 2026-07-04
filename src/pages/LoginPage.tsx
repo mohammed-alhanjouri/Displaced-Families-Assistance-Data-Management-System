@@ -16,7 +16,7 @@ import {
   UserRoundCheck,
   type LucideIcon,
 } from "lucide-react";
-import logo from "../assets/LOGO.png";
+import logo from "../assets/logo-img.png";
 import Button from "../components/ui/Button.tsx";
 import Checkbox from "../components/ui/Checkbox.tsx";
 import Input from "../components/ui/Input.tsx";

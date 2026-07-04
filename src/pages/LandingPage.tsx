@@ -16,8 +16,8 @@ import {
   UsersRound,
   type LucideIcon,
 } from "lucide-react";
-import logo from "../assets/LOGO.png";
-import heroLogo from "../assets/logo.jpg";
+import logo from "../assets/logo-img.png";
+import heroLogo from "../assets/bg-img.jpg";
 
 type Language = "en" | "ar";
 

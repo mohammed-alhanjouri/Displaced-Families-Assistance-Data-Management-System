@@ -8,7 +8,7 @@ import {
   LogIn,
   ShieldCheck,
 } from "lucide-react";
-import logo from "../assets/LOGO.png";
+import logo from "../assets/logo-img.png";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
@@ -74,7 +74,11 @@ const UpdatePasswordPage = () => {
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
                 {successMessage}
               </p>
-              <Button type="button" onClick={() => navigate("/login")} icon={LogIn}>
+              <Button
+                type="button"
+                onClick={() => navigate("/login")}
+                icon={LogIn}
+              >
                 Back to sign in
               </Button>
             </div>

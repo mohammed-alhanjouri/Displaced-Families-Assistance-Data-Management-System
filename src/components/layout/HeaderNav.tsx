@@ -1,13 +1,8 @@
 // Header navigation component
 
-import {
-  LogIn,
-  MapPin,
-  ShieldCheck,
-  UserRound,
-} from "lucide-react";
+import { LogIn, MapPin, ShieldCheck, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
-import logo from "../../assets/LOGO.png";
+import logo from "../../assets/logo-img.png";
 
 interface HeaderNavProps {
   user: {
