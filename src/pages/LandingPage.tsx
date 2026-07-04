@@ -8,7 +8,7 @@ import {
   ClipboardList,
   Database,
   FileText,
-  Globe2,
+  Globe,
   LayoutDashboard,
   LogIn,
   MapPinned,
@@ -224,7 +224,7 @@ const LandingPage = () => {
               aria-label="Language"
               className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 p-1 text-xs font-semibold"
             >
-              <Globe2 className="mx-1 hidden h-4 w-4 text-gray-500 sm:block" />
+              <Globe className="mx-1 hidden h-4 w-4 text-gray-500 sm:block" />
               <button
                 type="button"
                 aria-pressed={language === "en"}
@@ -268,15 +268,13 @@ const LandingPage = () => {
           <img
             src={heroLogo}
             alt=""
-            className={`pointer-events-none absolute bottom-0 hidden h-[78svh] max-h-[760px] w-auto object-contain opacity-10 md:block ${
-              isRtl ? "left-0 -translate-x-16" : "right-0 translate-x-16"
-            }`}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-10"
           />
 
           <div className="relative mx-auto flex min-h-[calc(100svh-88px)] max-w-7xl flex-col items-center justify-center px-4 py-10 text-center md:px-8">
             <div className="mb-7 flex h-28 w-28 items-center justify-center rounded-2xl bg-white p-3 shadow-lg shadow-blue-100 ring-1 ring-blue-100">
               <img
-                src={heroLogo}
+                src={logo}
                 alt="Awn visual identity"
                 className="h-full w-full rounded-xl object-cover"
               />
