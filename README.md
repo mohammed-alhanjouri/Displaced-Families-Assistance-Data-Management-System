@@ -100,7 +100,7 @@ Main capabilities:
 
 ## Project Structure
 
-```text
+````text
 src/
 ├── assets/
 ├── components/
@@ -113,9 +113,11 @@ src/
 └── main.tsx
 
 supabase/
+├── config.toml
+├── migrations/
+│   └── 20260704161714_initial_schema.sql
 └── functions/
     └── admin-users/
-```
 
 The frontend is organized into reusable components, feature modules, layouts, pages, routing, authentication logic, and Supabase data-access utilities. Administrative user operations that require elevated privileges are handled through a Supabase Edge Function.
 
@@ -126,7 +128,7 @@ The frontend is organized into reusable components, feature modules, layouts, pa
 ```bash
 git clone https://github.com/mohammed-alhanjouri/Displaced-Families-Assistance-Data-Management-System.git
 cd Displaced-Families-Assistance-Data-Management-System
-```
+````
 
 ### 2. Install dependencies
 
@@ -193,7 +195,7 @@ Previews the production build locally.
 
 ## Supabase Requirements
 
-To run the complete system, the connected Supabase project must include the application's authentication configuration, database schema, relationships, constraints, RLS policies, database functions, triggers, seed/reference data such as camps, and the deployed `admin-users` Edge Function.
+To run the complete system, the connected Supabase project must include the application's authentication configuration, database schema, relationships, constraints, RLS policies, database functions, triggers, required reference data, such as configured camp/location records, in the target Supabase environment, and the deployed `admin-users` Edge Function.
 
 The application currently depends on core data entities such as:
 
