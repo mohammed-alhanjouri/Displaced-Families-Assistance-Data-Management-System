@@ -27,3 +27,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright
+# HTML test results
+/playwright-report/
+# Screenshots, traces, and other execution artifacts
+/test-results/
+# Authentication state files
+/playwright/.auth/
