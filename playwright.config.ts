@@ -10,6 +10,7 @@ export default defineConfig({
 
   // Keep database-changing workflows predictable initially.
   fullyParallel: false,
+  // Reduce the number of workers to 1 to avoid database conflicts when running tests in parallel.
   workers: 1,
   retries: 0,
 
@@ -31,8 +32,10 @@ export default defineConfig({
   ],
 
   use: {
+    // Configure the base URL for the application under test.
     baseURL: "http://127.0.0.1:5173",
 
+    // Configure failure evidence collection.
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     video: "off",
