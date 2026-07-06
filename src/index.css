@@ -1,5 +1,208 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  --app-bg: #f3f4f6;
+  --app-surface: #ffffff;
+  --app-surface-muted: #f8fafc;
+  --app-surface-elevated: #ffffff;
+  --app-border: #d1d5db;
+  --app-border-soft: #e5e7eb;
+  --app-text: #111827;
+  --app-text-strong: #030712;
+  --app-text-muted: #6b7280;
+  --app-accent: #0066ff;
+  --app-accent-soft: #eff6ff;
+}
+
+.dark {
+  color-scheme: dark;
+  --app-bg: #020617;
+  --app-surface: #0f172a;
+  --app-surface-muted: #111827;
+  --app-surface-elevated: #1e293b;
+  --app-border: #334155;
+  --app-border-soft: #1f2937;
+  --app-text: #e2e8f0;
+  --app-text-strong: #f8fafc;
+  --app-text-muted: #94a3b8;
+  --app-accent: #60a5fa;
+  --app-accent-soft: rgba(37, 99, 235, 0.18);
+}
+
+html {
+  background-color: var(--app-bg);
+}
+
 body {
   font-family: system-ui, sans-serif;
-  background-color: #f3f4f6;
+  background-color: var(--app-bg);
+  color: var(--app-text);
+}
+
+.dark .bg-white,
+.dark .bg-white\/95,
+.dark .bg-\[\#f5f8fc\] {
+  background-color: var(--app-surface);
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-\[\#eef5ff\] {
+  background-color: var(--app-surface-muted);
+}
+
+.dark .bg-gray-200,
+.dark .bg-gray-300 {
+  background-color: #334155;
+}
+
+.dark .bg-blue-50 {
+  background-color: rgba(37, 99, 235, 0.18);
+}
+
+.dark .bg-blue-300 {
+  background-color: #60a5fa;
+}
+
+.dark .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.16);
+}
+
+.dark .bg-amber-50,
+.dark .bg-orange-100 {
+  background-color: rgba(245, 158, 11, 0.17);
+}
+
+.dark .bg-red-50,
+.dark .bg-red-100 {
+  background-color: rgba(239, 68, 68, 0.16);
+}
+
+.dark .text-gray-950,
+.dark .text-gray-900,
+.dark .text-gray-800 {
+  color: var(--app-text-strong);
+}
+
+.dark .text-gray-700,
+.dark .text-gray-600 {
+  color: var(--app-text);
+}
+
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: var(--app-text-muted);
+}
+
+.dark .text-gray-300 {
+  color: #64748b;
+}
+
+.dark .text-\[\#0066FF\],
+.dark .text-blue-700 {
+  color: var(--app-accent);
+}
+
+.dark .text-emerald-700 {
+  color: #6ee7b7;
+}
+
+.dark .text-amber-700,
+.dark .text-orange-700 {
+  color: #fcd34d;
+}
+
+.dark .text-red-700 {
+  color: #fca5a5;
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .border-gray-400,
+.dark .border-blue-100,
+.dark .border-blue-200 {
+  border-color: var(--app-border);
+}
+
+.dark .border-\[\#0066FF\] {
+  border-color: var(--app-accent);
+}
+
+.dark .divide-gray-100 > :not(:last-child),
+.dark .divide-gray-200 > :not(:last-child) {
+  border-color: var(--app-border-soft);
+}
+
+.dark .outline-gray-300 {
+  outline-color: var(--app-border);
+}
+
+.dark .ring-blue-100 {
+  --tw-ring-color: rgba(96, 165, 250, 0.35);
+}
+
+.dark .shadow-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
+.dark .shadow {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.24);
+}
+
+.dark .shadow-md {
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.26);
+}
+
+.dark .shadow-lg,
+.dark .shadow-xl {
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
+}
+
+.dark input:not([type="checkbox"]),
+.dark select,
+.dark textarea {
+  background-color: #0f172a;
+  color: var(--app-text);
+  border-color: var(--app-border);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b;
+}
+
+.dark input:disabled,
+.dark select:disabled,
+.dark textarea:disabled,
+.dark .disabled\:bg-gray-100:disabled {
+  background-color: #1e293b;
+  color: #94a3b8;
+}
+
+.dark .hover\:bg-gray-100:hover,
+.dark .hover\:bg-gray-200:hover,
+.dark .hover\:bg-gray-300:hover {
+  background-color: #1e293b;
+}
+
+.dark .hover\:bg-blue-50:hover {
+  background-color: rgba(37, 99, 235, 0.24);
+}
+
+.dark .hover\:border-blue-200:hover,
+.dark .hover\:border-blue-500:hover {
+  border-color: rgba(96, 165, 250, 0.7);
+}
+
+.dark .hover\:text-\[\#0066FF\]:hover,
+.dark .hover\:text-blue-700:hover {
+  color: #93c5fd;
+}
+
+.dark .focus\:ring-offset-2:focus {
+  --tw-ring-offset-color: var(--app-bg);
 }
