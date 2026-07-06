@@ -3,6 +3,7 @@
 import { LogIn, MapPin, ShieldCheck, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo-img.png";
+import ThemeToggle from "../ui/ThemeToggle";
 
 interface HeaderNavProps {
   user: {
@@ -32,6 +33,7 @@ const HeaderNav = ({ user }: HeaderNavProps) => {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-4">
+          <ThemeToggle className="min-h-10 w-10" />
           {user ? (
             <>
               <span className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
