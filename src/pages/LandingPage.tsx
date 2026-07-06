@@ -16,6 +16,7 @@ import {
   UsersRound,
   type LucideIcon,
 } from "lucide-react";
+import ThemeToggle from "../components/ui/ThemeToggle";
 import logo from "../assets/logo-img.png";
 import heroLogo from "../assets/bg-img.jpg";
 
@@ -251,6 +252,8 @@ const LandingPage = () => {
               </button>
             </div>
 
+            <ThemeToggle />
+
             <Link
               to="/login"
               className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-[#0066FF] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-200 transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:ring-offset-2"
@@ -264,11 +267,11 @@ const LandingPage = () => {
 
       <main>
         <section className="relative min-h-[calc(100svh-88px)] snap-start overflow-hidden border-b border-gray-200 bg-white">
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(#e5eefc_1px,transparent_1px),linear-gradient(90deg,#e5eefc_1px,transparent_1px)] bg-[size:56px_56px] opacity-40" />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(#e5eefc_1px,transparent_1px),linear-gradient(90deg,#e5eefc_1px,transparent_1px)] bg-[size:56px_56px] opacity-40 dark:opacity-[0.03]" />
           <img
             src={heroLogo}
             alt=""
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-10"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.08] dark:opacity-[0.03]"
           />
 
           <div className="relative mx-auto flex min-h-[calc(100svh-88px)] max-w-7xl flex-col items-center justify-center px-4 py-10 text-center md:px-8">
