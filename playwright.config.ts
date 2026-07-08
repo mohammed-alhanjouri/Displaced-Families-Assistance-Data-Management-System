@@ -8,9 +8,8 @@ Object.assign(process.env, e2eEnv);
 export default defineConfig({
   testDir: "./tests/e2e",
 
-  // Keep database-changing workflows predictable initially.
+  // The workflows mutate shared Supabase test data, so keep them serial.
   fullyParallel: false,
-  // Reduce the number of workers to 1 to avoid database conflicts when running tests in parallel.
   workers: 1,
   retries: 0,
 
@@ -56,7 +55,8 @@ export default defineConfig({
 
     url: "http://127.0.0.1:5173",
 
-    reuseExistingServer: !process.env.CI,
+    // Always launch the e2e-mode app to avoid stale dev-server state.
+    reuseExistingServer: false,
 
     timeout: 120_000,
   },
